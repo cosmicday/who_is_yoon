@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>WHO IS YOON? - 광역자치단체장 선거</title>
+    <link rel="icon" type="image/png" href="favicon.png?v=2">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="data/metro.js"></script>
+    <script src="common.js"></script>
+    <link rel="stylesheet" href="common.css">
+</head>
+<body>
+
+<div class="top-right-buttons">
+    <button class="btn-email" onclick="copyEmail()">✉️ 문의하기</button>
+    <a href="yoon.html" class="btn-yoon"><img src="favicon.png" alt="">YOON</a>
+</div>
+
+<div class="header">
+    <a href="index.html"><img src="main.jpg" alt="Header Logo" class="header-image"></a>
+</div>
+
+<div class="main-content">
+    <div id="map-wrapper">
+        <div class="syringe-container"><div class="syringe-track"></div></div>
+        <div class="search-container">
+            <input type="text" id="search-input" class="search-input" placeholder="지역이나 후보 검색" oninput="executeSearch()">
+            <button class="search-btn" onclick="executeSearch()">검색</button>
+        </div>
+        <div id="map-container"></div>
+    </div>
+    <div id="info-wrapper">
+        <h2 id="info-title" class="info-title">내 지역을 클릭해보세요</h2>
+        <p id="info-desc" class="info-desc">YOON을 찾아봅시다!</p>
+        <hr class="info-divider">
+    </div>
+</div>
+
+<div id="tooltip" class="tooltip"></div>
+
+<script>
+const ELECTION = '광역단체장';
+const IMG_DIR  = 'images/metro/';
+const width = 640, height = 640;
+
+const svg     = d3.select("#map-container").append("svg").attr("width", width).attr("height", height);
+const g       = svg.append("g");
+const tooltip = d3.select("#tooltip");
+
+let persistentlySelectedName = null;
+const pendingRegion = new URLSearchParams(window.location.search).get('region');
+
+// ── 지역 색상 제어 ──────────────────────────────────────────
+function setRegionColor(name, color) {
+    d3.select(`path[data-name='${name}']`).style("fill", color);
+    if (name === "경상북도") d3.select("#dokdo-marker").style("fill", color);
+}
+
+// ── 지역 활성화 ─────────────────────────────────────────────
+window.activateRegion = function(name) {
+    document.getElementById("search-input").value = "";
+    if (persistentlySelectedName) setRegionColor(persistentlySelectedName, "#ccc");
+    persistentlySelectedName = name;
+    setRegionColor(name, getRegionColor(name));
+    updateInfoPanel(name);
+};
+
+// ── 검색 ────────────────────────────────────────────────────
+window.executeSearch = function() {
+    const rawTerm = document.getElementById("search-input").value.trim().toLowerCase();
+    const infoWrapper = d3.select("#info-wrapper");
+
+    if (!rawTerm) { updateInfoPanel(persistentlySelectedName); return; }
+
+    infoWrapper.selectAll(".info-divider, .candidate-list, .search-results, .no-candidate-msg").remove();
+    d3.select("#info-title").text(`"${rawTerm}" 검색 결과`);
+    d3.select("#info-desc").text("결과를 클릭하면 해당 지역으로 이동합니다.").style("color", "#666");
+    infoWrapper.append("hr").attr("class", "info-divider");
+
+    const resultsContainer = infoWrapper.append("div").attr("class", "search-results");
+    const regionContainer   = resultsContainer.append("div").attr("class", "results-section");
+    const candidateContainer = resultsContainer.append("div").attr("class", "results-section");
+
+    const regionResults = [], candidateResults = [];
+
+    for (const regionName in metroData) {
+        if (rawTerm.length > 1 && regionName.toLowerCase().includes(rawTerm)) {
+            regionResults.push(regionName);
+        }
+        (metroData[regionName] || []).forEach(candidate => {
+            const name = (candidate.이름 || "").split('(')[0].trim();
+            if (name.toLowerCase().includes(rawTerm)) {
+                candidateResults.push({ regionName, name, candidate });
+            }
+        });
+    }
+
+    regionResults.sort((a, b) => a.localeCompare(b));
+    candidateResults.sort((a, b) => a.name.localeCompare(b.name) || a.regionName.localeCompare(b.regionName));
+
+    regionResults.forEach(regionName => {
+        regionContainer.append("div").attr("class", "search-result-region")
+            .style("border-left", `6px solid ${getRegionColor(regionName)}`)
+            .text(`🗺️ ${regionName}`)
+            .on("click", () => activateRegion(regionName));
+    });
+
+    candidateResults.forEach(({ regionName, name, candidate }) => {
+        buildCandidateCard(candidateContainer, {
+            borderColor:  partyColors[candidate.정당] || "#555",
+            imgSrc:       candidate.사진 || `${IMG_DIR}${name}.jpg`,
+            number:       candidate.기호,
+            name,
+            party:        candidate.정당 || "무소속",
+            yoon:         candidate.yoon,
+            election:     ELECTION,
+            isSearch:     true,
+            regionLabel:  regionName,
+            onClick:      () => activateRegion(regionName),
+        });
+    });
+
+    if (!regionResults.length && !candidateResults.length) {
+        resultsContainer.append("p").attr("class", "no-candidate-msg").text("검색 결과가 없습니다.");
+    }
+};
+
+// ── 인포패널 갱신 ────────────────────────────────────────────
+function updateInfoPanel(regionName) {
+    const infoWrapper = d3.select("#info-wrapper");
+    infoWrapper.selectAll(".info-divider, .candidate-list, .search-results, .no-candidate-msg").remove();
+
+    if (!regionName) {
+        d3.select("#info-title").text("내 지역을 클릭해보세요");
+        d3.select("#info-desc").text("YOON을 찾아봅시다!").style("color", "#666");
+        return;
+    }
+
+    const candidates = metroData[regionName] || [];
+    const hasYoon    = candidates.some(c => c.yoon);
+
+    d3.select("#info-title").text(regionName);
+    d3.select("#info-desc")
+        .text(hasYoon ? "YOON이 발견되었습니다!" : "YOON이 발견되지 않았습니다!")
+        .style("color", hasYoon ? "#ae1932" : "#666");
+    infoWrapper.append("hr").attr("class", "info-divider");
+
+    if (candidates.length) {
+        const list = infoWrapper.append("div").attr("class", "candidate-list");
+        candidates.forEach(candidate => {
+            const name = (candidate.이름 || "미등록 후보").split('(')[0].trim();
+            buildCandidateCard(list, {
+                borderColor: partyColors[candidate.정당] || "#555",
+                imgSrc:      candidate.사진 || `${IMG_DIR}${name}.jpg`,
+                number:      candidate.기호,
+                name,
+                party:       candidate.정당 || "무소속",
+                yoon:        candidate.yoon,
+                election:    ELECTION,
+            });
+        });
+    } else {
+        infoWrapper.append("p").attr("class", "no-candidate-msg").text("등록된 후보가 없습니다.");
+    }
+}
+
+// ── 지도 렌더링 ──────────────────────────────────────────────
+d3.json("geo/metro.json").then(function(data) {
+    const projection = d3.geoIdentity().reflectY(true).fitSize([width, height], data);
+    const path       = d3.geoPath().projection(projection);
+
+    const regions = g.selectAll("path")
+        .data(data.features).enter()
+        .append("path")
+        .attr("d", path)
+        .attr("class", "land")
+        .attr("data-name", d => d.properties.CTP_KOR_NM)
+        .style("fill", "#ccc")
+        .on("mouseover", function(e, d) {
+            const name = d.properties.CTP_KOR_NM;
+            tooltip.style("display", "block").html(name);
+            if (persistentlySelectedName !== name) setRegionColor(name, getRegionColor(name));
+        })
+        .on("mousemove", e => tooltip.style("top", (e.pageY - 10) + "px").style("left", (e.pageX + 10) + "px"))
+        .on("mouseout", function(e, d) {
+            const name = d.properties.CTP_KOR_NM;
+            tooltip.style("display", "none");
+            if (persistentlySelectedName !== name) setRegionColor(name, "#ccc");
+        })
+        .on("click", function(e, d) {
+            const name = d.properties.CTP_KOR_NM;
+            if (persistentlySelectedName === name) {
+                setRegionColor(name, "#ccc");
+                persistentlySelectedName = null;
+                updateInfoPanel(null);
+            } else {
+                activateRegion(name);
+            }
+        });
+
+    // 독도 마커 (경상북도 bbox 기준)
+    let gyeongbukNode = null;
+    regions.each(function(d) { if (d.properties.CTP_KOR_NM === "경상북도") gyeongbukNode = this; });
+
+    if (gyeongbukNode) {
+        const bbox = gyeongbukNode.getBBox();
+        g.append("circle")
+            .attr("id", "dokdo-marker").attr("class", "island-marker")
+            .attr("cx", bbox.x + 345).attr("cy", bbox.y + 45).attr("r", 3)
+            .style("fill", "#ccc")
+            .on("mouseover", function() {
+                tooltip.style("display", "block").html("경상북도");
+                if (persistentlySelectedName !== "경상북도") setRegionColor("경상북도", getRegionColor("경상북도"));
+            })
+            .on("mousemove", e => tooltip.style("top", (e.pageY - 10) + "px").style("left", (e.pageX + 10) + "px"))
+            .on("mouseout", function() {
+                tooltip.style("display", "none");
+                if (persistentlySelectedName !== "경상북도") setRegionColor("경상북도", "#ccc");
+            })
+            .on("click", () => {
+                const name = "경상북도";
+                if (persistentlySelectedName === name) {
+                    setRegionColor(name, "#ccc");
+                    persistentlySelectedName = null;
+                    updateInfoPanel(null);
+                } else {
+                    activateRegion(name);
+                }
+            });
+    }
+
+    initMapZoomAndSyringe({ svg, g, baseScale: 0.85, maxScale: 5.0, numSteps: 14, translateX: 40, translateY: 40 });
+
+    // YOON 지역 붉은 테두리 오버레이
+    const yoonOverlay = g.append("g").attr("class", "yoon-overlay");
+    for (const regionName in metroData) {
+        if ((metroData[regionName] || []).some(c => c.yoon)) {
+            const dAttr = d3.select(`path[data-name='${regionName}']`).attr("d");
+            if (dAttr) {
+                yoonOverlay.append("path")
+                    .attr("d", dAttr)
+                    .attr("fill", "none")
+                    .attr("stroke", "#ae1932")
+                    .attr("stroke-width", "1px")
+                    .style("pointer-events", "none");
+            }
+        }
+    }
+
+    if (pendingRegion) activateRegion(pendingRegion);
+});
+</script>
+<p class="disclaimer">본 사이트는 공직선거 후보자의 공적 발언 및 행동에 관한 공개된 정보를 바탕으로 제작되었으며, 특정 후보를 비방하거나 명예를 훼손할 목적이 없습니다.</p>
+</body>
+</html>

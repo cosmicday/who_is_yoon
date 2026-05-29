@@ -1,0 +1,360 @@
+body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    font-family: 'Pretendard', sans-serif;
+}
+
+.header {
+    text-align: center;
+    padding: 20px 0 10px 0;
+}
+
+.header-image {
+    width: 350px;
+    height: auto;
+}
+
+.main-content {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+}
+
+#map-wrapper {
+    position: relative;
+    width: 640px;
+    height: 640px;
+    background: #fff;
+    border: 2px solid #222;
+    overflow: hidden;
+}
+
+#info-wrapper {
+    width: 400px;
+    height: 640px;
+    background: #fff;
+    border: 2px solid #222;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+#info-wrapper::-webkit-scrollbar { width: 8px; }
+#info-wrapper::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
+#info-wrapper::-webkit-scrollbar-thumb { background: #d1d1d1; border-radius: 10px; border: 2px solid #fff; }
+#info-wrapper::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+.syringe-container {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 140px;
+    height: 20px;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.syringe-track {
+    position: relative;
+    top: 8px;
+    height: 1.5px;
+    background: #999;
+    width: 100%;
+}
+
+.syringe-tick {
+    position: absolute;
+    top: -8px;
+    width: 15px;
+    height: 20px;
+    cursor: pointer;
+    transform: translateX(-50%);
+}
+
+.tick-mark {
+    width: 1.5px;
+    height: 6px;
+    background: #999;
+    margin: 5px auto;
+}
+
+.syringe-tick.active .tick-mark {
+    width: 3px;
+    height: 10px;
+    background: #ff4d4d;
+    margin-top: 3px;
+}
+
+.land {
+    stroke: #fff;
+    stroke-width: 0.5px;
+    transition: fill 0.2s ease-in-out;
+}
+
+.land:hover { cursor: pointer; }
+
+.island-marker {
+    stroke: #fff;
+    stroke-width: 0.5px;
+    cursor: pointer;
+    transition: fill 0.2s ease-in-out;
+}
+
+.tooltip {
+    position: absolute;
+    background: white;
+    padding: 5px;
+    border: 1px solid #ccc;
+    pointer-events: none;
+    display: none;
+    font-size: 13px;
+    font-weight: bold;
+    z-index: 1000;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.info-divider {
+    width: 95%;
+    margin: 20px auto;
+    border: 0;
+    border-top: 1px solid #222;
+}
+
+.search-container {
+    position: absolute;
+    top: 45px;
+    left: 15px;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 5px;
+}
+
+.search-input {
+    width: 130px;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.search-input:focus { border-color: #113468; }
+
+.search-btn {
+    background: #113468;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+
+.search-btn:hover { background: #0b2246; }
+
+.search-result-region {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 16px;
+    color: #222;
+    background: #fdfdfd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eee;
+    transition: all 0.2s;
+}
+
+.search-result-region:hover {
+    background: #f4f4f4;
+    transform: translateY(-2px);
+}
+
+.search-result-candidate {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.search-result-candidate:hover {
+    background: #f4f4f4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.region-badge {
+    font-size: 11px;
+    background: #e9ecef;
+    color: #495057;
+    padding: 3px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.candidate-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.candidate-card {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    background: #fdfdfd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.candidate-img {
+    width: 70px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #eee;
+    margin-right: 15px;
+    background: #f5f5f5;
+}
+
+.candidate-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.candidate-number {
+    font-size: 13px;
+    font-weight: 700;
+    color: #113468;
+}
+
+.candidate-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #111;
+}
+
+.candidate-party {
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+}
+
+/* 우상단 버튼 (문의하기 / YOON) */
+.top-right-buttons {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 1000;
+}
+
+.btn-email {
+    background-color: #f1f3f5;
+    color: #333333;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 30px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.btn-email:hover {
+    background-color: #e9ecef;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.btn-yoon {
+    background-color: #ae1932;
+    color: #ffffff;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 900;
+    text-decoration: none;
+    border-radius: 30px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.btn-yoon:hover {
+    background-color: #8c1426;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-yoon img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.yoon-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #ae1932;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+    width: fit-content;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.yoon-badge:hover {
+    background: #8c1426;
+}
+
+.yoon-badge-icon {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+}
+
+/* 면책고지 */
+.disclaimer {
+    text-align: center;
+    font-size: 11px;
+    color: #aaa;
+    padding: 10px 20px;
+    border-top: 1px solid #eee;
+    margin-top: 20px;
+}

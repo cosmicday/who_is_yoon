@@ -1,0 +1,6 @@
+{
+  "name": "whoisyoon",
+  "scripts": {
+    "start": "npx serve . -p ${PORT:-3000}"
+  }
+}
