@@ -358,7 +358,6 @@ body {
     border-top: 1px solid #eee;
     margin-top: 20px;
 }
-
 /* ============================================================
    RESPONSIVE — 모바일 (≤ 768px)
    ============================================================ */
@@ -406,22 +405,22 @@ body {
         box-sizing: border-box;
     }
 
-    /* 1번: 모바일에서 syringe-container 숨기기 */
+    /* 1번: syringe 숨기고 검색창을 그 자리로, 가로 50% */
     .syringe-container {
         display: none;
     }
 
-    /* 1번: 검색창을 syringe 자리(top:15px)로 올리고 너비 확장 */
     .search-container {
         top: 15px;
         left: 15px;
-        right: 15px;
-        width: auto;
+        right: auto;
+        width: 50%;
     }
 
     .search-input {
         flex: 1;
         width: auto;
+        min-width: 0;
     }
 
     .candidate-img {
