@@ -17,6 +17,7 @@ body {
 
 .main-content {
     display: flex;
+    flex-direction: row-reverse;
     justify-content: center;
     align-items: flex-start;
     gap: 20px;
@@ -432,11 +433,16 @@ body {
         padding: 6px 8px;
     }
 
-    .candidate-list {
+    .candidate-list,
+    .search-results .results-section:last-child {
         flex-direction: row !important;
         overflow-x: auto;
         gap: 10px;
         padding-bottom: 8px;
+    }
+
+    .search-results .results-section:last-child {
+        display: flex;
     }
 
     .candidate-card {
@@ -444,6 +450,7 @@ body {
         align-items: center !important;
         min-width: 110px;
         max-width: 110px;
+        min-height: 210px;
         flex-shrink: 0;
         padding: 10px 8px;
         text-align: center;
