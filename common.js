@@ -155,22 +155,31 @@ function buildCandidateCard(container, {
  * 모바일에서 wrapper 실제 크기 비율로 scale/translate 자동 보정
  */
 function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translateX = 40, translateY = 40 }) {
-    // wrapper 실제 픽셀 크기 → 데스크탑 기준(640px) 대비 비율
     const wrapper = document.getElementById("map-wrapper");
     const mapW = wrapper ? Math.round(wrapper.getBoundingClientRect().width) : 640;
+    const isMobile = mapW < 640;
     const ratio = (mapW > 0 ? mapW : 640) / 640;
+
+    // 2번: 모바일에서 baseScale을 4단계 높임
+    // scales 배열에서 4단계 위의 값을 초기 배율로 사용
+    const rawScales = Array.from(
+        { length: numSteps },
+        (_, i) => baseScale * Math.pow(maxScale / baseScale, i / (numSteps - 1))
+    );
+    const mobileInitScale = isMobile ? rawScales[Math.min(4, numSteps - 1)] : baseScale;
 
     const adjBase = baseScale * ratio;
     const adjMax  = maxScale  * ratio;
-    const adjTX   = translateX * ratio;
-    const adjTY   = translateY * ratio;
+    // 3번: 모바일 초기 위치 — 지도 중앙 기준으로 우하단 이동
+    const adjTX = isMobile ? mapW * -0.15 : translateX * ratio;
+    const adjTY = isMobile ? mapW * -0.05 : translateY * ratio;
+    const adjInitScale = mobileInitScale * ratio;
 
     const scales = Array.from(
         { length: numSteps },
         (_, i) => adjBase * Math.pow(adjMax / adjBase, i / (numSteps - 1))
     );
 
-    // zoom을 먼저 정의해 tick 클릭 핸들러에서 안전하게 참조
     const zoom = d3.zoom()
         .scaleExtent([adjBase, adjMax])
         .filter(event => {
@@ -189,7 +198,7 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
             ticks.classed("active", (_, i) => i === closestIdx);
         });
 
-    // 주사기 눈금 생성
+    // 주사기 눈금 생성 (데스크탑만 표시, 모바일은 CSS로 hidden)
     const track = d3.select(".syringe-track");
     track.html("");
 
@@ -205,8 +214,8 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
 
     ticks.append("div").attr("class", "tick-mark");
 
-    // 초기 위치·배율 설정, 더블클릭 확대 비활성화
-    const initial = d3.zoomIdentity.translate(adjTX, adjTY).scale(adjBase);
+    // 초기 위치·배율 설정
+    const initial = d3.zoomIdentity.translate(adjTX, adjTY).scale(adjInitScale);
     svg.call(zoom).on("dblclick.zoom", null).call(zoom.transform, initial);
 
     return zoom;
