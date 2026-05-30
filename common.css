@@ -438,6 +438,21 @@ body {
         overflow-x: auto;
         gap: 10px;
         padding-bottom: 8px;
+        scrollbar-width: thin;
+        scrollbar-color: #d1d1d1 transparent;
+    }
+
+    .candidate-list::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .candidate-list::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .candidate-list::-webkit-scrollbar-thumb {
+        background: #d1d1d1;
+        border-radius: 10px;
     }
 
     .search-results .results-section:last-child {
@@ -446,6 +461,21 @@ body {
         overflow-x: auto;
         gap: 10px;
         padding-bottom: 8px;
+        scrollbar-width: thin;
+        scrollbar-color: #d1d1d1 transparent;
+    }
+
+    .search-results .results-section:last-child::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .search-results .results-section:last-child::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .search-results .results-section:last-child::-webkit-scrollbar-thumb {
+        background: #d1d1d1;
+        border-radius: 10px;
     }
 
     .candidate-card {

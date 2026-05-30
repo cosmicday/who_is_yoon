@@ -244,7 +244,6 @@ d3.json("geo/metro.json").then(function(data) {
                 search.style.overflow = 'hidden';
                 if (btn) {
                     btn.style.flexShrink = '0';
-                    btn.style.padding = '6px 8px';
                 }
                 if (input) {
                     input.style.width = '0';
@@ -255,7 +254,7 @@ d3.json("geo/metro.json").then(function(data) {
                 search.style.width = '';
                 search.style.overflow = '';
                 if (input) { input.style.width = ''; input.style.flex = ''; input.style.minWidth = ''; }
-                if (btn) { btn.style.flexShrink = ''; btn.style.padding = ''; }
+                if (btn) { btn.style.flexShrink = ''; }
             }
         }
         setSearchWidth();
