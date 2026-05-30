@@ -411,25 +411,15 @@ body {
         display: none;
     }
 
-    /* 2번: 검색창 syringe 자리로, 가로 50% 좌상단 */
+    /* 검색창: syringe 자리로 이동 (너비는 JS로 제어) */
     .search-container {
         top: 15px;
         left: 15px;
-        width: 50%;
-        box-sizing: border-box;
-        overflow: hidden;
     }
 
     .search-input {
-        width: 0;
         flex: 1;
         min-width: 0;
-    }
-
-    .search-btn {
-        flex-shrink: 0;
-        padding: 6px 8px;
-        font-size: 12px;
     }
 
     .candidate-img {

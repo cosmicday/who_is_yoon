@@ -232,6 +232,22 @@ d3.json("geo/metro.json").then(function(data) {
 
     initMapZoomAndSyringe({ svg, g, baseScale: 0.85, maxScale: 5.0, numSteps: 14, translateX: 40, translateY: 40 });
 
+    // 모바일에서 검색창 너비를 map-wrapper의 50%로 설정
+    (function() {
+        function setSearchWidth() {
+            const wrapper = document.getElementById('map-wrapper');
+            const search = document.querySelector('.search-container');
+            if (!wrapper || !search) return;
+            if (wrapper.getBoundingClientRect().width < 640) {
+                search.style.width = (wrapper.getBoundingClientRect().width * 0.5) + 'px';
+            } else {
+                search.style.width = '';
+            }
+        }
+        window.addEventListener('load', setSearchWidth);
+        window.addEventListener('resize', setSearchWidth);
+    })();
+
     // YOON 지역 붉은 테두리 오버레이
     const yoonOverlay = g.append("g").attr("class", "yoon-overlay");
     for (const regionName in metroData) {
