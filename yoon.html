@@ -57,7 +57,7 @@
         /* 테이블 헤더 */
         .yoon-table-header {
             display: grid;
-            grid-template-columns: 9fr 15fr 15fr 61fr;
+            grid-template-columns: 15fr 15fr 15fr 55fr;
             background: #f8f8f8;
             border-bottom: 2px solid #222;
             padding: 10px 0;
@@ -78,9 +78,9 @@
         /* 행 */
         .yoon-row {
             display: grid;
-            grid-template-columns: 9fr 15fr 15fr 61fr;
+            grid-template-columns: 15fr 15fr 15fr 55fr;
             border-bottom: 1px solid #eee;
-            min-height: 40px;
+            min-height: 100px;
             align-items: stretch;
         }
 
@@ -94,7 +94,7 @@
 
         /* 각 셀 공통 */
         .yoon-cell {
-            padding: 6px 12px;
+            padding: 14px 12px;
             display: flex;
             align-items: center;
         }
@@ -109,7 +109,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            gap: 2px;
+            gap: 6px;
         }
 
         .election-badge {
@@ -149,7 +149,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            gap: 2px;
+            gap: 4px;
         }
 
         .info-number {
@@ -310,6 +310,44 @@
             .yoon-box {
                 padding: 15px;
             }
+
+            /* 4번: 선거/지역+사진+후보자 칸 세로 공간 60% 축소 */
+            .yoon-cell {
+                padding: 6px 12px;
+            }
+            .yoon-row {
+                min-height: 40px;
+            }
+            .yoon-cell.cell-region {
+                gap: 2px;
+            }
+            .yoon-cell.cell-info {
+                gap: 2px;
+            }
+
+            /* 5번: 헤더 텍스트 변경 + grid 비율 조정 (선거/지역 40% 축소) */
+            .yoon-table-header {
+                grid-template-columns: 0.6fr 1fr;
+            }
+            .yoon-table-header div:first-child::before {
+                content: 'YOON';
+            }
+            .yoon-table-header div:first-child {
+                font-size: 0;
+            }
+            .yoon-table-header div:last-child::before {
+                content: 'WHY';
+            }
+            .yoon-table-header div:last-child {
+                font-size: 0;
+            }
+            .yoon-table-header div:first-child::before,
+            .yoon-table-header div:last-child::before {
+                font-size: 12px;
+            }
+            .yoon-row {
+                grid-template-columns: 0.6fr 1fr;
+            }
         }
     </style>
 </head>
@@ -331,10 +369,10 @@
             <hr class="yoon-divider">
 
             <div class="yoon-table-header">
-                <div>YOON</div>
+                <div>선거 / 지역</div>
                 <div>사진</div>
                 <div>후보자</div>
-                <div>WHY</div>
+                <div>WHY YOON?</div>
             </div>
 
             <div id="yoon-list"></div>

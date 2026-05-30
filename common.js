@@ -171,8 +171,8 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
     const adjBase = baseScale * ratio;
     const adjMax  = maxScale  * ratio;
     // 3번: 모바일 초기 위치 — 지도 중앙 기준으로 우하단 이동
-    const adjTX = isMobile ? mapW * -0.45 : translateX * ratio;
-    const adjTY = isMobile ? mapW * -0.10 : translateY * ratio;
+    const adjTX = isMobile ? mapW * -0.65 : translateX * ratio;
+    const adjTY = isMobile ? mapW * -0.20 : translateY * ratio;
     const adjInitScale = mobileInitScale * ratio;
 
     const scales = Array.from(

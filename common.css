@@ -411,17 +411,19 @@ body {
         display: none;
     }
 
-    /* 2번: 검색창 syringe 자리로, 가로 50% 좌상단 */
+    /* 검색창: syringe 자리(top:15px), 가로 map-wrapper의 50% */
     .search-container {
-        top: 15px;
-        left: 15px;
-        width: 50%;
+        top: 15px !important;
+        left: 15px !important;
+        width: 50% !important;
+        max-width: 50% !important;
+        box-sizing: border-box;
     }
 
     .search-input {
-        flex: 1;
-        width: auto;
-        min-width: 0;
+        flex: 1 !important;
+        width: auto !important;
+        min-width: 0 !important;
     }
 
     .candidate-img {
