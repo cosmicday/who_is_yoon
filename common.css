@@ -411,30 +411,40 @@ body {
         display: none;
     }
 
-    /* 검색창: syringe 자리로 이동 (너비는 JS로 제어) */
+    /* 검색창: CSS로 초기 너비 선점 (JS 로드 전 깜빡임 방지) */
     .search-container {
         top: 15px;
         left: 15px;
+        width: 50vw;
+        max-width: 300px;
+        overflow: hidden;
     }
 
     .search-input {
         flex: 1;
         min-width: 0;
+        width: 0;
         font-size: 16px;
     }
 
+    .search-btn {
+        flex-shrink: 0;
+        padding: 6px 8px;
+    }
+
     .candidate-list {
-        flex-direction: row;
+        flex-direction: row !important;
         overflow-x: auto;
         gap: 10px;
         padding-bottom: 8px;
     }
 
     .candidate-card {
-        flex-direction: column;
-        align-items: center;
+        flex-direction: column !important;
+        align-items: center !important;
         min-width: 110px;
         max-width: 110px;
+        flex-shrink: 0;
         padding: 10px 8px;
         text-align: center;
     }
