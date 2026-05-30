@@ -225,7 +225,7 @@ d3.json("geo/re.json").then(function(data) {
         const bbox = gyeongbukNode.getBBox();
         g.append("circle")
             .attr("id", "dokdo-marker").attr("class", "island-marker")
-            .attr("cx", bbox.x + bbox.width + 180).attr("cy", bbox.y - 110).attr("r", 3)
+            .attr("cx", bbox.x + bbox.width + 170).attr("cy", bbox.y - 110).attr("r", 3)
             .style("fill", "#ccc")
             .on("mouseover", () => tooltip.style("display", "block").html("독도"))
             .on("mousemove", e => tooltip.style("top", (e.pageY - 10) + "px").style("left", (e.pageX + 10) + "px"))
@@ -263,7 +263,7 @@ d3.json("geo/re.json").then(function(data) {
                 if (btn) { btn.style.flexShrink = ''; btn.style.padding = ''; }
             }
         }
-        window.addEventListener('load', setSearchWidth);
+        setSearchWidth();
         window.addEventListener('resize', setSearchWidth);
     })();
 

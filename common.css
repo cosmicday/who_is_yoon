@@ -379,7 +379,7 @@ body {
     }
 
     .main-content {
-        flex-direction: column;
+        flex-direction: column-reverse;
         align-items: center;
         padding: 10px;
         gap: 12px;
@@ -420,6 +420,7 @@ body {
     .search-input {
         flex: 1;
         min-width: 0;
+        font-size: 16px;
     }
 
     .candidate-img {

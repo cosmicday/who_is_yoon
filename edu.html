@@ -258,7 +258,7 @@ d3.json("geo/metro.json").then(function(data) {
                 if (btn) { btn.style.flexShrink = ''; btn.style.padding = ''; }
             }
         }
-        window.addEventListener('load', setSearchWidth);
+        setSearchWidth();
         window.addEventListener('resize', setSearchWidth);
     })();
 
