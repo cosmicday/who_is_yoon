@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WHO IS YOON? - 기초자치단체장 선거</title>
     <link rel="icon" type="image/png" href="favicon.png?v=2">
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -41,7 +42,7 @@
 <script>
 const ELECTION = '기초단체장';
 const IMG_DIR  = 'images/local/';
-const width = 640, height = 640;
+const width = (function(){ const w = document.getElementById("map-wrapper"); const s = w ? Math.round(w.getBoundingClientRect().width) : 640; return s > 0 ? s : 640; })(), height = width;
 
 // 기초선거가 없는 광역시·도
 const NO_ELECTION_REGIONS = new Set(["세종특별자치시", "제주특별자치도"]);

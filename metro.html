@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WHO IS YOON? - 광역자치단체장 선거</title>
     <link rel="icon" type="image/png" href="favicon.png?v=2">
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -41,7 +42,7 @@
 <script>
 const ELECTION = '광역단체장';
 const IMG_DIR  = 'images/metro/';
-const width = 640, height = 640;
+const width = (function(){ const w = document.getElementById("map-wrapper"); const s = w ? Math.round(w.getBoundingClientRect().width) : 640; return s > 0 ? s : 640; })(), height = width;
 
 const svg     = d3.select("#map-container").append("svg").attr("width", width).attr("height", height);
 const g       = svg.append("g");

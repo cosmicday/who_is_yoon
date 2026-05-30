@@ -152,16 +152,27 @@ function buildCandidateCard(container, {
 // ============================================================
 /**
  * 지도 줌 및 주사기(Syringe) UI 연동
+ * 모바일에서 wrapper 실제 크기 비율로 scale/translate 자동 보정
  */
 function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translateX = 40, translateY = 40 }) {
+    // wrapper 실제 픽셀 크기 → 데스크탑 기준(640px) 대비 비율
+    const wrapper = document.getElementById("map-wrapper");
+    const mapW = wrapper ? Math.round(wrapper.getBoundingClientRect().width) : 640;
+    const ratio = (mapW > 0 ? mapW : 640) / 640;
+
+    const adjBase = baseScale * ratio;
+    const adjMax  = maxScale  * ratio;
+    const adjTX   = translateX * ratio;
+    const adjTY   = translateY * ratio;
+
     const scales = Array.from(
         { length: numSteps },
-        (_, i) => baseScale * Math.pow(maxScale / baseScale, i / (numSteps - 1))
+        (_, i) => adjBase * Math.pow(adjMax / adjBase, i / (numSteps - 1))
     );
 
     // zoom을 먼저 정의해 tick 클릭 핸들러에서 안전하게 참조
     const zoom = d3.zoom()
-        .scaleExtent([baseScale, maxScale])
+        .scaleExtent([adjBase, adjMax])
         .filter(event => {
             if (event.type === "wheel" && event.ctrlKey) return false;
             return !event.button;
@@ -195,7 +206,7 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
     ticks.append("div").attr("class", "tick-mark");
 
     // 초기 위치·배율 설정, 더블클릭 확대 비활성화
-    const initial = d3.zoomIdentity.translate(translateX, translateY).scale(baseScale);
+    const initial = d3.zoomIdentity.translate(adjTX, adjTY).scale(adjBase);
     svg.call(zoom).on("dblclick.zoom", null).call(zoom.transform, initial);
 
     return zoom;
