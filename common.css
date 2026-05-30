@@ -418,11 +418,6 @@ body {
     .candidate-party { font-size: 13px; }
 }
 
-@media (max-width: 400px) {
-    .search-input { width: 110px; }
-    .btn-email, .btn-yoon { font-size: 11px; padding: 6px 9px; }
-}
-
 @media (max-width: 768px) {
     .top-right-buttons { top: 10px; right: 10px; gap: 8px; }
     .btn-email, .btn-yoon { font-size: 12px; padding: 7px 12px; }
@@ -435,4 +430,9 @@ body {
     .candidate-img { width: 55px; height: 72px; margin-right: 10px; }
     .candidate-name { font-size: 16px; }
     .candidate-party { font-size: 13px; }
+}
+
+@media (max-width: 400px) {
+    .search-input { width: 110px; }
+    .btn-email, .btn-yoon { font-size: 11px; padding: 6px 9px; }
 }
