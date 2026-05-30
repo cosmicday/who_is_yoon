@@ -423,13 +423,35 @@ body {
         font-size: 16px;
     }
 
-    .candidate-img {
-        width: 55px;
-        height: 72px;
-        margin-right: 10px;
+    .candidate-list {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 10px;
+        padding-bottom: 8px;
     }
-    .candidate-name { font-size: 16px; }
-    .candidate-party { font-size: 13px; }
+
+    .candidate-card {
+        flex-direction: column;
+        align-items: center;
+        min-width: 110px;
+        max-width: 110px;
+        padding: 10px 8px;
+        text-align: center;
+    }
+
+    .candidate-img {
+        width: 60px;
+        height: 78px;
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+
+    .candidate-info {
+        align-items: center;
+    }
+
+    .candidate-name { font-size: 14px; }
+    .candidate-party { font-size: 12px; }
 }
 
 @media (max-width: 400px) {
