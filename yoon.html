@@ -57,7 +57,7 @@
         /* 테이블 헤더 */
         .yoon-table-header {
             display: grid;
-            grid-template-columns: 9fr 15fr 15fr 61fr;
+            grid-template-columns: 15fr 15fr 15fr 55fr;
             background: #f8f8f8;
             border-bottom: 2px solid #222;
             padding: 10px 0;
@@ -78,9 +78,9 @@
         /* 행 */
         .yoon-row {
             display: grid;
-            grid-template-columns: 9fr 15fr 15fr 61fr;
+            grid-template-columns: 15fr 15fr 15fr 55fr;
             border-bottom: 1px solid #eee;
-            min-height: 60px;
+            min-height: 100px;
             align-items: stretch;
         }
 
@@ -94,7 +94,7 @@
 
         /* 각 셀 공통 */
         .yoon-cell {
-            padding: 6px 12px;
+            padding: 14px 12px;
             display: flex;
             align-items: center;
         }
@@ -109,7 +109,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            gap: 2px;
+            gap: 6px;
         }
 
         .election-badge {
@@ -149,7 +149,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            gap: 2px;
+            gap: 4px;
         }
 
         .info-number {
@@ -248,6 +248,69 @@
             font-weight: 700;
             line-height: 0;
         }
+
+        /* ── 모바일: 4칸 → 2칸 ── */
+        @media (max-width: 768px) {
+            .yoon-table-header {
+                grid-template-columns: 1fr 1fr;
+            }
+            /* 사진·후보자 헤더 숨김 (왼칸에 합침) */
+            .yoon-table-header div:nth-child(2),
+            .yoon-table-header div:nth-child(3) {
+                display: none;
+            }
+            .yoon-table-header div:first-child {
+                border-right: 1px solid #ddd;
+            }
+
+            .yoon-row {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto;
+            }
+
+            /* 왼칸: 선거/지역 + 사진 + 후보자 정보를 세로로 쌓음 */
+            .yoon-cell.cell-region {
+                grid-column: 1;
+                grid-row: 1;
+                flex-direction: column;
+                align-items: center;
+                border-right: 1px solid #eee;
+                border-bottom: none;
+            }
+            .yoon-cell.cell-photo {
+                grid-column: 1;
+                grid-row: 2;
+                border-right: 1px solid #eee;
+                border-bottom: none;
+                justify-content: center;
+            }
+            .yoon-cell.cell-info {
+                grid-column: 1;
+                grid-row: 3;
+                border-right: 1px solid #eee;
+                border-bottom: none;
+            }
+
+            /* 오른칸: 근거가 3행 전체를 차지 */
+            .yoon-cell.cell-evidence {
+                grid-column: 2;
+                grid-row: 1 / 4;
+                align-items: flex-start;
+            }
+
+            /* 구분선 제거 */
+            .yoon-cell:not(:last-child) {
+                border-right: none;
+            }
+
+            .evidence-text {
+                font-size: 13px;
+            }
+
+            .yoon-box {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 
@@ -268,10 +331,10 @@
             <hr class="yoon-divider">
 
             <div class="yoon-table-header">
-                <div>YOON</div>
+                <div>선거 / 지역</div>
                 <div>사진</div>
                 <div>후보자</div>
-                <div>WHY</div>
+                <div>WHY YOON?</div>
             </div>
 
             <div id="yoon-list"></div>

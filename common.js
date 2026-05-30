@@ -160,21 +160,20 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
     const isMobile = mapW < 640;
     const ratio = (mapW > 0 ? mapW : 640) / 640;
 
-    // 배율 배열 (데스크탑 기준)
+    // 2번: 모바일에서 baseScale을 4단계 높임
+    // scales 배열에서 4단계 위의 값을 초기 배율로 사용
     const rawScales = Array.from(
         { length: numSteps },
         (_, i) => baseScale * Math.pow(maxScale / baseScale, i / (numSteps - 1))
     );
+    const mobileInitScale = isMobile ? rawScales[Math.min(4, numSteps - 1)] : baseScale;
 
     const adjBase = baseScale * ratio;
     const adjMax  = maxScale  * ratio;
-
-    // 모바일: 4단계 높은 배율로 시작, 위치는 우하단으로 이동
-    // 이전: adjTX = mapW * -0.15, adjTY = mapW * -0.05
-    // 2번 수정: 아래로 2배(mapW * -0.10), 오른쪽으로 3배(mapW * -0.45)
-    const adjInitScale = isMobile ? rawScales[Math.min(4, numSteps - 1)] * ratio : adjBase;
-    const adjTX = isMobile ? mapW * -0.45 : translateX * ratio;
-    const adjTY = isMobile ? mapW * -0.10 : translateY * ratio;
+    // 3번: 모바일 초기 위치 — 지도 중앙 기준으로 우하단 이동
+    const adjTX = isMobile ? mapW * -0.15 : translateX * ratio;
+    const adjTY = isMobile ? mapW * -0.05 : translateY * ratio;
+    const adjInitScale = mobileInitScale * ratio;
 
     const scales = Array.from(
         { length: numSteps },
@@ -199,7 +198,7 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
             ticks.classed("active", (_, i) => i === closestIdx);
         });
 
-    // 주사기 눈금 생성
+    // 주사기 눈금 생성 (데스크탑만 표시, 모바일은 CSS로 hidden)
     const track = d3.select(".syringe-track");
     track.html("");
 
@@ -215,6 +214,7 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
 
     ticks.append("div").attr("class", "tick-mark");
 
+    // 초기 위치·배율 설정
     const initial = d3.zoomIdentity.translate(adjTX, adjTY).scale(adjInitScale);
     svg.call(zoom).on("dblclick.zoom", null).call(zoom.transform, initial);
 
