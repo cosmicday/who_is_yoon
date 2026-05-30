@@ -17,7 +17,6 @@ body {
 
 .main-content {
     display: flex;
-    flex-direction: row-reverse;
     justify-content: center;
     align-items: flex-start;
     gap: 20px;
@@ -430,7 +429,7 @@ body {
 
     .search-btn {
         flex-shrink: 0;
-        padding: 6px 8px;
+        padding: 6px 8px !important;
     }
 
     .candidate-list {
@@ -438,44 +437,6 @@ body {
         overflow-x: auto;
         gap: 10px;
         padding-bottom: 8px;
-        scrollbar-width: thin;
-        scrollbar-color: #d1d1d1 transparent;
-    }
-
-    .candidate-list::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .candidate-list::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .candidate-list::-webkit-scrollbar-thumb {
-        background: #d1d1d1;
-        border-radius: 10px;
-    }
-
-    .search-results .results-section:last-child {
-        display: flex;
-        flex-direction: row;
-        overflow-x: auto;
-        gap: 10px;
-        padding-bottom: 8px;
-        scrollbar-width: thin;
-        scrollbar-color: #d1d1d1 transparent;
-    }
-
-    .search-results .results-section:last-child::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .search-results .results-section:last-child::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .search-results .results-section:last-child::-webkit-scrollbar-thumb {
-        background: #d1d1d1;
-        border-radius: 10px;
     }
 
     .candidate-card {
@@ -483,7 +444,6 @@ body {
         align-items: center !important;
         min-width: 110px;
         max-width: 110px;
-        min-height: 200px;
         flex-shrink: 0;
         padding: 10px 8px;
         text-align: center;

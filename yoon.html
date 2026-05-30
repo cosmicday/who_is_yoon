@@ -295,7 +295,7 @@
             .yoon-cell.cell-evidence {
                 grid-column: 2;
                 grid-row: 1 / 4;
-                align-items: flex-start;
+                align-items: center;
             }
 
             /* 구분선 제거 */
@@ -313,22 +313,16 @@
 
             /* 4번: 선거/지역+사진+후보자 칸 세로 공간 60% 축소 */
             .yoon-cell {
-                padding: 10px 12px;
-                justify-content: center;
+                padding: 6px 12px;
             }
             .yoon-row {
-                min-height: 48px;
+                min-height: 40px;
             }
             .yoon-cell.cell-region {
                 gap: 2px;
             }
             .yoon-cell.cell-info {
                 gap: 2px;
-            }
-
-            /* 2번: YOON칸과 WHY칸 사이 구분선 */
-            .yoon-cell.cell-evidence {
-                border-left: 1px solid #eee;
             }
 
             /* 5번: 헤더 텍스트 변경 + grid 비율 조정 (선거/지역 40% 축소) */
@@ -340,6 +334,9 @@
             }
             .yoon-table-header div:first-child {
                 font-size: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }
             .yoon-table-header div:last-child::before {
                 content: 'WHY';
