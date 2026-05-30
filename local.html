@@ -276,38 +276,6 @@ d3.json("geo/local.json").then(function(data) {
 
     initMapZoomAndSyringe({ svg, g, baseScale: 0.85, maxScale: 5.0, numSteps: 14, translateX: 40, translateY: 40 });
 
-    // 모바일에서 검색창 너비를 map-wrapper의 50%로 설정
-    (function() {
-        function setSearchWidth() {
-            const wrapper = document.getElementById('map-wrapper');
-            const search = document.querySelector('.search-container');
-            const input = document.getElementById('search-input');
-            const btn = document.querySelector('.search-btn');
-            if (!wrapper || !search) return;
-            const w = wrapper.getBoundingClientRect().width;
-            if (w < 640) {
-                const half = Math.floor(w * 0.5);
-                search.style.width = half + 'px';
-                search.style.overflow = 'hidden';
-                if (btn) {
-                    btn.style.flexShrink = '0';
-                }
-                if (input) {
-                    input.style.width = '0';
-                    input.style.flex = '1';
-                    input.style.minWidth = '0';
-                }
-            } else {
-                search.style.width = '';
-                search.style.overflow = '';
-                if (input) { input.style.width = ''; input.style.flex = ''; input.style.minWidth = ''; }
-                if (btn) { btn.style.flexShrink = ''; }
-            }
-        }
-        setSearchWidth();
-        window.addEventListener('resize', setSearchWidth);
-    })();
-
     // YOON 지역 붉은 테두리 오버레이
     const yoonRegions = new Set();
     for (const large in localData) {
