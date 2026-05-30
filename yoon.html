@@ -311,8 +311,11 @@
                 padding: 15px;
             }
 
-            /* 4번: 선거/지역+사진+후보자 칸 세로 공간 60% 축소 */
+            /* 4번: 지역/사진/기호 셀 간격 절반으로 */
             .yoon-cell {
+                padding: 3px 12px;
+            }
+            .yoon-cell.cell-evidence {
                 padding: 6px 12px;
             }
             .yoon-row {
@@ -325,7 +328,12 @@
                 gap: 2px;
             }
 
-            /* 5번: 헤더 텍스트 변경 + grid 비율 조정 (선거/지역 40% 축소) */
+            /* 5번: 헤더 텍스트 변경 + grid 비율 조정 + 전체 너비 70%로 축소 */
+            .yoon-box {
+                max-width: 70%;
+                margin: 0 auto;
+                padding: 15px;
+            }
             .yoon-table-header {
                 grid-template-columns: 0.6fr 1fr;
             }
