@@ -415,7 +415,7 @@ body {
     .search-container {
         top: 15px;
         left: 15px;
-        width: 50vw;
+        width: calc(50vw - 10px);
         max-width: 300px;
         overflow: hidden;
     }

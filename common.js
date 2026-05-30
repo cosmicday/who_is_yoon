@@ -151,34 +151,6 @@ function buildCandidateCard(container, {
 //  MAP ZOOM & SYRINGE UI
 // ============================================================
 // ============================================================
-//  SEARCH WIDTH INIT  (모바일 검색창 너비 — 지도 로드 전 고정)
-// ============================================================
-(function () {
-    function setSearchWidth() {
-        const wrapper = document.getElementById('map-wrapper');
-        const search  = document.querySelector('.search-container');
-        const input   = document.getElementById('search-input');
-        const btn     = document.querySelector('.search-btn');
-        if (!wrapper || !search) return;
-        const w = wrapper.getBoundingClientRect().width;
-        if (w < 640) {
-            const half = Math.floor(w * 0.5);
-            search.style.width    = half + 'px';
-            search.style.overflow = 'hidden';
-            if (btn)   btn.style.flexShrink = '0';
-            if (input) { input.style.width = '0'; input.style.flex = '1'; input.style.minWidth = '0'; }
-        } else {
-            search.style.width    = '';
-            search.style.overflow = '';
-            if (input) { input.style.width = ''; input.style.flex = ''; input.style.minWidth = ''; }
-            if (btn)   btn.style.flexShrink = '';
-        }
-    }
-    document.addEventListener('DOMContentLoaded', setSearchWidth);
-    window.addEventListener('resize', setSearchWidth);
-})();
-
-// ============================================================
 /**
  * 지도 줌 및 주사기(Syringe) UI 연동
  * 모바일에서 wrapper 실제 크기 비율로 scale/translate 자동 보정
