@@ -8,6 +8,7 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="data/local.js"></script>
     <script src="common.js"></script>
+    <script src="mapPage.js"></script>
     <link rel="stylesheet" href="common.css">
 </head>
 <body>
@@ -22,11 +23,7 @@
 </div>
 
 <div class="main-content">
-    <div id="info-wrapper">
-        <h2 id="info-title" class="info-title">내 지역을 클릭해보세요</h2>
-        <p id="info-desc" class="info-desc">YOON을 찾아봅시다!</p>
-        <hr class="info-divider">
-    </div>
+
     <div id="map-wrapper">
         <div class="syringe-container"><div class="syringe-track"></div></div>
         <div class="search-container">
@@ -35,49 +32,22 @@
         </div>
         <div id="map-container"></div>
     </div>
+
+    <div id="info-wrapper">
+        <h2 id="info-title" class="info-title">내 지역을 클릭해보세요</h2>
+        <p id="info-desc" class="info-desc">YOON을 찾아봅시다!</p>
+        <hr class="info-divider">
+    </div>
 </div>
 
 <div id="tooltip" class="tooltip"></div>
 
 <script>
-const ELECTION = '기초단체장';
-const IMG_DIR  = 'images/local/';
-const width = (function(){ const w = document.getElementById("map-wrapper"); const s = w ? Math.round(w.getBoundingClientRect().width) : 640; return s > 0 ? s : 640; })(), height = width;
+const IMG_DIR = 'images/local/';
 
 // 기초선거가 없는 광역시·도
 const NO_ELECTION_REGIONS = new Set(["세종특별자치시", "제주특별자치도"]);
 
-const svg     = d3.select("#map-container").append("svg").attr("width", width).attr("height", height);
-const g       = svg.append("g");
-const tooltip = d3.select("#tooltip");
-
-let persistentlySelectedName = null;
-const pendingRegion = new URLSearchParams(window.location.search).get('region');
-
-// ── 지역 색상 제어 ──────────────────────────────────────────
-// local 지도는 GeoJSON feature에 직접 필터링 (다중 폴리곤 대응)
-function setRegionColor(name, color) {
-    g.selectAll("path.land")
-        .filter(d => d.properties && d.properties.SIG_KOR_NM === name)
-        .style("fill", color);
-    if (name === "경상북도 울릉군") d3.select("#dokdo-marker").style("fill", color);
-}
-
-// ── 이름 정제 (trailing 알파벳 제거) ────────────────────────
-function toDisplayName(rawName) {
-    return (rawName || "").replace(/[A-Z]$/, "");
-}
-
-// ── 지역 활성화 ─────────────────────────────────────────────
-window.activateRegion = function(name) {
-    document.getElementById("search-input").value = "";
-    if (persistentlySelectedName) setRegionColor(persistentlySelectedName, "#ccc");
-    persistentlySelectedName = name;
-    setRegionColor(name, getRegionColor(name));
-    updateInfoPanel(name);
-};
-
-// ── 검색 ────────────────────────────────────────────────────
 // 검색어 약칭 → 전체명 변환 테이블
 const ABBR_MAP = {
     "충남": "충청남도", "충북": "충청북도",
@@ -86,222 +56,97 @@ const ABBR_MAP = {
     "강원": "강원특별자치도",
 };
 
-function expandSearchTerm(raw) {
-    let t = raw;
-    for (const [abbr, full] of Object.entries(ABBR_MAP)) {
-        t = t.replace(new RegExp(abbr, "g"), full);
-    }
-    return t;
-}
+createMapPage({
+    election: '기초단체장',
+    geoFile:  'geo/local.json',
 
-window.executeSearch = function() {
-    const rawTerm = document.getElementById("search-input").value.trim().toLowerCase();
-    const infoWrapper = d3.select("#info-wrapper");
+    listRegions: () => {
+        const list = [];
+        for (const large in localData)
+            for (const small in localData[large])
+                list.push(`${large} ${small}`);
+        return list;
+    },
+    getCandidates: name => {
+        const idx = name.indexOf(' ');
+        if (idx === -1) return [];
+        return localData[name.slice(0, idx)]?.[name.slice(idx + 1)] || [];
+    },
+    geoKey:        d => d.properties.SIG_KOR_NM,
+    candidateName: c => (c.이름 || '').replace(/[A-Z]$/, ''),
 
-    if (!rawTerm) { updateInfoPanel(persistentlySelectedName); return; }
+    isNoElection:  name => NO_ELECTION_REGIONS.has(name.split(' ')[0]),
+    noElectionMsg: '해당 지역에서는 기초자치단체장 선거가 치러지지 않습니다!',
 
-    const term = expandSearchTerm(rawTerm);
+    // 약칭 검색 지원
+    expandTerm: term => {
+        let t = term;
+        for (const [abbr, full] of Object.entries(ABBR_MAP))
+            t = t.replace(new RegExp(abbr, 'g'), full);
+        return t;
+    },
 
-    infoWrapper.selectAll(".info-divider, .candidate-list, .search-results, .no-candidate-msg").remove();
-    d3.select("#info-title").text(`"${rawTerm}" 검색 결과`);
-    d3.select("#info-desc").text("결과를 클릭하면 해당 지역으로 이동합니다.").style("color", "#666");
-    infoWrapper.append("hr").attr("class", "info-divider");
+    // imgSrc는 raw 이름(trailing 알파벳 포함) 사용
+    cardOpts: (c, _displayName) => ({
+        borderColor: partyColors[c.정당] || "#555",
+        imgSrc:      c.사진 || `${IMG_DIR}${c.이름}.jpg`,
+        number:      c.기호,
+        party:       c.정당 || "무소속",
+    }),
 
-    const resultsContainer  = infoWrapper.append("div").attr("class", "search-results");
-    const regionContainer    = resultsContainer.append("div").attr("class", "results-section");
-    const candidateContainer = resultsContainer.append("div").attr("class", "results-section");
+    // 울릉군 선택 시 독도 마커도 함께 색상 변경
+    // local GeoJSON은 속성 필터 방식 유지 (다중 폴리곤 대응)
+    setFill: (g, name, color) => {
+        g.selectAll("path.land")
+            .filter(d => d.properties && d.properties.SIG_KOR_NM === name)
+            .style("fill", color);
+        if (name === "경상북도 울릉군") d3.select("#dokdo-marker").style("fill", color);
+    },
 
-    const regionResults = [], candidateResults = [];
+    onGeoLoaded: ({ g, regions, width, tooltip, setRegionColor, initialFill, getPersisted, deactivateRegion }) => {
+        // 독도 마커 (울릉군 bbox 기준)
+        let ulleungNode = null;
+        regions.each(function(d) { if (d.properties.SIG_KOR_NM?.includes("울릉군")) ulleungNode = this; });
 
-    for (const largeRegion in localData) {
-        for (const smallRegion in localData[largeRegion]) {
-            const fullName = `${largeRegion} ${smallRegion}`;
-            if (rawTerm.length > 1 && (fullName.toLowerCase().includes(term) || smallRegion.toLowerCase().includes(term))) {
-                regionResults.push({ fullName, largeRegion });
-            }
-            (localData[largeRegion][smallRegion] || []).forEach(candidate => {
-                const name = toDisplayName(candidate.이름);
-                if (name && name.toLowerCase().includes(rawTerm)) {
-                    candidateResults.push({ fullName, name, rawName: candidate.이름, candidate });
-                }
-            });
+        if (ulleungNode) {
+            const bbox = ulleungNode.getBBox();
+            g.append("circle")
+                .attr("id", "dokdo-marker").attr("class", "island-marker")
+                .attr("cx", bbox.x + 670 * (width / 640)).attr("cy", bbox.y + 200 * (width / 640)).attr("r", 3)
+                .style("fill", initialFill("경상북도 울릉군"))
+                .on("mouseover", function() {
+                    tooltip.style("display", "block").html("경상북도 울릉군");
+                    if (getPersisted() !== "경상북도 울릉군") setRegionColor("경상북도 울릉군", getRegionColor("경상북도 울릉군"));
+                })
+                .on("mousemove", e => tooltip.style("top", `${e.pageY - 10}px`).style("left", `${e.pageX + 10}px`))
+                .on("mouseout", function() {
+                    tooltip.style("display", "none");
+                    if (getPersisted() !== "경상북도 울릉군") setRegionColor("경상북도 울릉군", initialFill("경상북도 울릉군"));
+                })
+                .on("click", function() {
+                    const name = "경상북도 울릉군";
+                    getPersisted() === name ? deactivateRegion(name) : window.activateRegion(name);
+                });
         }
-    }
 
-    regionResults.sort((a, b) => a.fullName.localeCompare(b.fullName));
-    candidateResults.sort((a, b) => a.name.localeCompare(b.name) || a.fullName.localeCompare(b.fullName));
+        // YOON 지역 붉은 테두리 오버레이
+        const yoonRegions = new Set();
+        for (const large in localData)
+            for (const small in localData[large])
+                if ((localData[large][small] || []).some(c => c.yoon))
+                    yoonRegions.add(`${large} ${small}`);
 
-    regionResults.forEach(({ fullName, largeRegion }) => {
-        regionContainer.append("div").attr("class", "search-result-region")
-            .style("border-left", `6px solid ${getRegionColor(largeRegion)}`)
-            .text(`🗺️ ${fullName}`)
-            .on("click", () => activateRegion(fullName));
-    });
-
-    candidateResults.forEach(({ fullName, name, rawName, candidate }) => {
-        buildCandidateCard(candidateContainer, {
-            borderColor: partyColors[candidate.정당] || "#555",
-            imgSrc:      candidate.사진 || `${IMG_DIR}${rawName}.jpg`,
-            number:      candidate.기호,
-            name,
-            party:       candidate.정당 || "무소속",
-            yoon:        candidate.yoon,
-            election:    ELECTION,
-            isSearch:    true,
-            regionLabel: fullName,
-            onClick:     () => activateRegion(fullName),
-        });
-    });
-
-    if (!regionResults.length && !candidateResults.length) {
-        resultsContainer.append("p").attr("class", "no-candidate-msg").text("검색 결과가 없습니다.");
-    }
-};
-
-// ── 인포패널 갱신 ────────────────────────────────────────────
-function updateInfoPanel(fullName) {
-    const infoWrapper = d3.select("#info-wrapper");
-    infoWrapper.selectAll(".info-divider, .candidate-list, .search-results, .no-candidate-msg").remove();
-
-    if (!fullName) {
-        d3.select("#info-title").text("내 지역을 클릭해보세요");
-        d3.select("#info-desc").text("YOON을 찾아봅시다!").style("color", "#666");
-        return;
-    }
-
-    const largeRegion = fullName.split(" ")[0];
-    const smallRegion = fullName.slice(largeRegion.length).trim();
-    const noElection  = NO_ELECTION_REGIONS.has(largeRegion);
-
-    d3.select("#info-title").text(fullName);
-
-    if (noElection) {
-        d3.select("#info-desc")
-            .text("해당 지역에서는 기초자치단체장 선거가 치러지지 않습니다!")
-            .style("color", "#666");
-        infoWrapper.append("hr").attr("class", "info-divider");
-        return;
-    }
-
-    const candidates = localData?.[largeRegion]?.[smallRegion] || [];
-    const hasYoon    = candidates.some(c => c.yoon);
-
-    d3.select("#info-desc")
-        .text(hasYoon ? "YOON이 발견되었습니다!" : "YOON이 발견되지 않았습니다!")
-        .style("color", hasYoon ? "#ae1932" : "#666");
-    infoWrapper.append("hr").attr("class", "info-divider");
-
-    if (candidates.length) {
-        const list = infoWrapper.append("div").attr("class", "candidate-list");
-        candidates.forEach(candidate => {
-            const name = toDisplayName(candidate.이름 || "미등록 후보");
-            buildCandidateCard(list, {
-                borderColor: partyColors[candidate.정당] || "#555",
-                imgSrc:      candidate.사진 || `${IMG_DIR}${candidate.이름}.jpg`,
-                number:      candidate.기호,
-                name,
-                party:       candidate.정당 || "무소속",
-                yoon:        candidate.yoon,
-                election:    ELECTION,
-            });
-        });
-    } else {
-        infoWrapper.append("p").attr("class", "no-candidate-msg").text("등록된 후보가 없습니다.");
-    }
-}
-
-// ── 지도 렌더링 ──────────────────────────────────────────────
-d3.json("geo/local.json").then(function(data) {
-    const projection = d3.geoIdentity().reflectY(true).fitSize([width, height], data);
-    const path       = d3.geoPath().projection(projection);
-
-    const regions = g.selectAll("path")
-        .data(data.features).enter()
-        .append("path")
-        .attr("d", path)
-        .attr("class", "land")
-        .style("fill", "#ccc")
-        .on("mouseover", function(e, d) {
-            const name = d.properties.SIG_KOR_NM;
-            tooltip.style("display", "block").html(name);
-            if (persistentlySelectedName !== name) setRegionColor(name, getRegionColor(name));
-        })
-        .on("mousemove", e => tooltip.style("top", (e.pageY - 10) + "px").style("left", (e.pageX + 10) + "px"))
-        .on("mouseout", function(e, d) {
-            const name = d.properties.SIG_KOR_NM;
-            tooltip.style("display", "none");
-            if (persistentlySelectedName !== name) setRegionColor(name, "#ccc");
-        })
-        .on("click", function(e, d) {
-            const name = d.properties.SIG_KOR_NM;
-            if (persistentlySelectedName === name) {
-                setRegionColor(name, "#ccc");
-                persistentlySelectedName = null;
-                updateInfoPanel(null);
-            } else {
-                activateRegion(name);
-            }
-        });
-
-    // 독도 마커 (울릉군 bbox 기준)
-    let ulleungNode = null;
-    regions.each(function(d) { if (d.properties.SIG_KOR_NM?.includes("울릉군")) ulleungNode = this; });
-
-    if (ulleungNode) {
-        const bbox = ulleungNode.getBBox();
-        g.append("circle")
-            .attr("id", "dokdo-marker").attr("class", "island-marker")
-            .attr("cx", bbox.x + 670 * (width / 640)).attr("cy", bbox.y + 200 * (width / 640)).attr("r", 3)
-            .style("fill", "#ccc")
-            .on("mouseover", function() {
-                tooltip.style("display", "block").html("경상북도 울릉군");
-                if (persistentlySelectedName !== "경상북도 울릉군") setRegionColor("경상북도 울릉군", getRegionColor("경상북도 울릉군"));
-            })
-            .on("mousemove", e => tooltip.style("top", (e.pageY - 10) + "px").style("left", (e.pageX + 10) + "px"))
-            .on("mouseout", function() {
-                tooltip.style("display", "none");
-                if (persistentlySelectedName !== "경상북도 울릉군") setRegionColor("경상북도 울릉군", "#ccc");
-            })
-            .on("click", function() {
-                const name = "경상북도 울릉군";
-                if (persistentlySelectedName === name) {
-                    setRegionColor(name, "#ccc");
-                    persistentlySelectedName = null;
-                    updateInfoPanel(null);
-                } else {
-                    activateRegion(name);
-                }
-            });
-    }
-
-    initMapZoomAndSyringe({ svg, g, baseScale: 0.85, maxScale: 5.0, numSteps: 14, translateX: 40, translateY: 40 });
-
-    // YOON 지역 붉은 테두리 오버레이
-    const yoonRegions = new Set();
-    for (const large in localData) {
-        for (const small in localData[large]) {
-            if ((localData[large][small] || []).some(c => c.yoon)) {
-                yoonRegions.add(`${large} ${small}`);
-            }
-        }
-    }
-
-    const yoonOverlay = g.append("g").attr("class", "yoon-overlay");
-    g.selectAll("path.land")
-        .filter(d => d.properties && yoonRegions.has(d.properties.SIG_KOR_NM))
-        .each(function() {
-            const dAttr = d3.select(this).attr("d");
-            if (dAttr) {
-                yoonOverlay.append("path")
-                    .attr("d", dAttr)
-                    .attr("fill", "none")
-                    .attr("stroke", "#ae1932")
-                    .attr("stroke-width", "1px")
+        const yoonOverlay = g.append("g").attr("class", "yoon-overlay");
+        g.selectAll("path.land")
+            .filter(d => d.properties && yoonRegions.has(d.properties.SIG_KOR_NM))
+            .each(function() {
+                const dAttr = d3.select(this).attr("d");
+                if (dAttr) yoonOverlay.append("path")
+                    .attr("d", dAttr).attr("fill", "none")
+                    .attr("stroke", "#ae1932").attr("stroke-width", "1px")
                     .style("pointer-events", "none");
-            }
-        });
-
-    if (pendingRegion) activateRegion(pendingRegion);
+            });
+    },
 });
 </script>
 <p class="disclaimer">본 사이트는 공직선거 후보자의 공적 발언 및 행동에 관한 공개된 정보를 바탕으로 제작되었으며, 특정 후보를 비방하거나 명예를 훼손할 목적이 없습니다.</p>

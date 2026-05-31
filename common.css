@@ -214,6 +214,14 @@ body {
     margin-top: 15px;
 }
 
+/* PC: 검색 결과를 후보자 목록과 동일하게 세로 나열 */
+.results-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+}
+
 .candidate-card {
     display: flex;
     align-items: center;
@@ -463,6 +471,55 @@ body {
     .candidate-name { font-size: 14px; }
     .candidate-party { font-size: 12px; }
 }
+
+    /* ── 1. 지도 터치 시 툴팁 숨김 (지역명은 후보자박스에만 표시) ── */
+    .tooltip {
+        display: none !important;
+    }
+
+    /* ── 2. 후보자 박스 / 검색결과 — 동일 높이 + 가로 스크롤 ── */
+    .candidate-list {
+        align-items: stretch;       /* 모든 카드 동일 높이 (YOON 있는 카드 기준) */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 6px;
+    }
+
+    .candidate-card {
+        justify-content: flex-start; /* 내용 위에서 정렬 → 높이 통일 시 여백은 아래 */
+    }
+
+    /* ── 3. 검색 결과 가로 스크롤 ── */
+    .results-section {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 10px;
+        padding-bottom: 6px;
+        align-items: stretch;
+    }
+
+    /* ── 4. 가로 스크롤 바 (Webkit / Firefox) ── */
+    .candidate-list::-webkit-scrollbar,
+    .results-section::-webkit-scrollbar {
+        height: 4px;
+    }
+    .candidate-list::-webkit-scrollbar-track,
+    .results-section::-webkit-scrollbar-track {
+        background: #efefef;
+        border-radius: 2px;
+    }
+    .candidate-list::-webkit-scrollbar-thumb,
+    .results-section::-webkit-scrollbar-thumb {
+        background: #bbb;
+        border-radius: 2px;
+    }
+    .candidate-list,
+    .results-section {
+        scrollbar-width: thin;
+        scrollbar-color: #bbb #efefef;
+    }
 
 @media (max-width: 400px) {
     .btn-email, .btn-yoon { font-size: 11px; padding: 6px 9px; }
