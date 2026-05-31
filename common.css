@@ -415,8 +415,8 @@ body {
     #info-wrapper {
         width: 100%;
         max-width: 100%;
-        height: auto;
-        min-height: 200px;
+        height: 55vh;        /* 고정 높이 — 내용 바뀌어도 레이아웃 불변 */
+        min-height: 250px;
         box-sizing: border-box;
     }
 

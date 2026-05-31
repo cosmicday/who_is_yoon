@@ -84,6 +84,13 @@ function createMapPage(cfg) {
 
         if (!rawTerm) { updateInfoPanel(persistentlySelectedName); return; }
 
+        // 모바일: 결과 업데이트 전에 info-wrapper 상단으로 스크롤 (화면 튀는 현상 방지)
+        const iwEl = document.getElementById('info-wrapper');
+        if (window.innerWidth <= 768 && iwEl) {
+            iwEl.scrollTop = 0;
+            iwEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
         // 검색 시작 → 선택된 지역 불 끄기
         if (persistentlySelectedName) {
             setRegionColor(persistentlySelectedName, initialFill(persistentlySelectedName));
@@ -131,6 +138,10 @@ function createMapPage(cfg) {
     function updateInfoPanel(regionName) {
         const iw = d3.select("#info-wrapper");
         iw.selectAll(".info-divider,.candidate-list,.search-results,.no-candidate-msg").remove();
+
+        // 모바일: 내부 스크롤 위치 초기화
+        const iwEl = document.getElementById('info-wrapper');
+        if (window.innerWidth <= 768 && iwEl) iwEl.scrollTop = 0;
 
         if (!regionName) {
             d3.select("#info-title").text("").style("display", "none");
