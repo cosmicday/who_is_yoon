@@ -231,44 +231,58 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
     svg.call(zoom).on("dblclick.zoom", null).call(zoom.transform, initial);
 
     // 모바일: 지도 팬 한계 도달 시 페이지 스크롤로 넘기기
-    // capture 페이즈에서 D3 처리 전 transform을 저장,
-    // bubble 페이즈(D3 처리 후)에서 실제 이동량과 비교
+    //
+    // 핵심: D3는 SVG의 bubble 페이즈에서 touchmove를 잡고 preventDefault() 호출.
+    // wrapper의 capture 페이즈는 SVG bubble보다 먼저 실행되므로,
+    // 여기서 stopPropagation()하면 D3가 아예 이벤트를 못 봄 → preventDefault 없음.
+    // → 그 틈에 window.scrollBy()로 페이지를 직접 스크롤.
     if (isMobile) {
         const svgEl = svg.node();
+        let startTouchY = null;
+        let startTouchX = null;
+        let startMapY   = null;
         let lastTouchY  = null;
-        let lastTouchX  = null;
-        let preEventY   = null; // D3가 처리하기 직전의 transform.y
+        let scrollMode  = false; // true면 이 제스처는 페이지 스크롤로 처리
 
-        svgEl.addEventListener('touchstart', e => {
-            lastTouchY = e.touches[0].clientY;
-            lastTouchX = e.touches[0].clientX;
-            preEventY  = d3.zoomTransform(svgEl).y;
+        // touchstart: 기준점 초기화 (passive OK — 방향 결정은 move에서)
+        wrapper.addEventListener('touchstart', e => {
+            if (e.touches.length !== 1) return;
+            startTouchY = e.touches[0].clientY;
+            startTouchX = e.touches[0].clientX;
+            startMapY   = d3.zoomTransform(svgEl).y;
+            lastTouchY  = startTouchY;
+            scrollMode  = false;
         }, { passive: true });
 
-        // ① capture 페이즈: D3 bubble 리스너보다 먼저 실행 → 처리 前 transform 저장
-        svgEl.addEventListener('touchmove', e => {
-            preEventY = d3.zoomTransform(svgEl).y;
-        }, { capture: true, passive: true });
+        // touchmove — capture + passive:false:
+        //   capture → wrapper가 SVG보다 먼저 실행
+        //   passive:false → stopPropagation 가능
+        wrapper.addEventListener('touchmove', e => {
+            if (startTouchY === null || e.touches.length !== 1) return;
 
-        // ② bubble 페이즈: D3가 이미 transform을 갱신한 뒤 실행 → 실제 이동량 비교
-        svgEl.addEventListener('touchmove', e => {
-            if (lastTouchY === null) return;
-            const curY       = e.touches[0].clientY;
-            const curX       = e.touches[0].clientX;
-            const postEventY = d3.zoomTransform(svgEl).y;
+            const curY      = e.touches[0].clientY;
+            const curX      = e.touches[0].clientX;
+            const totalAbsY = Math.abs(startTouchY - curY);
+            const totalAbsX = Math.abs(startTouchX - curX);
+            const mapDeltaY = Math.abs(d3.zoomTransform(svgEl).y - startMapY);
 
-            const dTouchY  = lastTouchY - curY;            // 양수 = 손가락 위 = 페이지 아래
-            const dTouchX  = Math.abs(lastTouchX - curX);
-            const dMap     = Math.abs(postEventY - preEventY); // D3가 실제로 움직인 양
+            // 스크롤 모드 진입 조건:
+            //   ① 세로 스와이프 우세  ② 10px 이상 이동  ③ 지도가 절반도 못 움직임
+            if (!scrollMode && totalAbsY > 10 && totalAbsY > totalAbsX) {
+                if (mapDeltaY < totalAbsY * 0.5) scrollMode = true;
+            }
 
-            // 세로 스와이프 우세 + D3가 지도를 안 움직임 → 페이지 스크롤
-            if (Math.abs(dTouchY) > dTouchX && Math.abs(dTouchY) > 2 && dMap < 1) {
-                window.scrollBy(0, dTouchY);
+            if (scrollMode) {
+                e.stopPropagation();          // D3 touchmove 차단 (preventDefault 못 하게)
+                window.scrollBy(0, lastTouchY - curY); // 페이지 스크롤
             }
 
             lastTouchY = curY;
-            lastTouchX = curX;
-        }, { passive: true }); // D3 뒤에 등록됐으므로 D3 이후 실행
+        }, { capture: true, passive: false });
+
+        // touchend: 상태 초기화
+        wrapper.addEventListener('touchend',   () => { scrollMode = false; }, { passive: true });
+        wrapper.addEventListener('touchcancel',() => { scrollMode = false; }, { passive: true });
     }
 
     return zoom;
