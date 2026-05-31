@@ -93,7 +93,7 @@ function createMapPage(cfg) {
         const expanded = expandTerm(rawTerm);
 
         iw.selectAll(".info-divider,.candidate-list,.search-results,.no-candidate-msg").remove();
-        d3.select("#info-title").text(`"${rawTerm}" 검색`).style("display", "");
+        d3.select("#info-title").text(`"${rawTerm}" 검색`).style("display", "").style("font-size", "20px");
         d3.select("#info-desc").text("후보자를 클릭하면 해당 선거구로 이동합니다.").style("color", "#666").style("font-size", "");
         iw.append("hr").attr("class", "info-divider");
 
@@ -134,12 +134,12 @@ function createMapPage(cfg) {
 
         if (!regionName) {
             d3.select("#info-title").text("").style("display", "none");
-            d3.select("#info-desc").text("YOON을 찾아봅시다!").style("color", "#000").style("font-size", "20px");
+            d3.select("#info-desc").text("YOON을 찾아봅시다!").style("color", "#000").style("font-size", "14px");
             iw.append("hr").attr("class", "info-divider"); // 구분선 항상 유지
             return;
         }
 
-        d3.select("#info-title").text(regionName).style("display", "");
+        d3.select("#info-title").text(regionName).style("display", "").style("font-size", "");
 
         if (isNoElection(regionName)) {
             d3.select("#info-desc").text(noElectionMsg).style("color", "#666").style("font-size", "");
@@ -197,7 +197,7 @@ function createMapPage(cfg) {
                 if (!hasData(name)) {
                     const iw = d3.select("#info-wrapper");
                     iw.selectAll(".info-divider,.candidate-list,.search-results,.no-candidate-msg").remove();
-                    d3.select("#info-title").text(name).style("display", "");
+                    d3.select("#info-title").text(name).style("display", "").style("font-size", "");
                     d3.select("#info-desc").text(noElectionMsg).style("color", "#666").style("font-size", "");
                     iw.append("hr").attr("class", "info-divider");
                     return;

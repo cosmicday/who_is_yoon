@@ -249,100 +249,87 @@
             line-height: 0;
         }
 
-        /* ── 모바일: 4칸 → 2칸 ── */
+        /* ── 모바일: flex row (왼쪽 wrapper + evidence) ── */
         /* PC: th-mobile 숨김, th-pc-only 표시 */
         .th-mobile  { display: none; }
         .th-desktop { display: inline; }
         .th-pc-only { display: table-cell; }  /* 헤더 셀 기본 표시 */
 
         @media (max-width: 768px) {
-            .header-image {
-                width: 220px;
-            }
+            .header-image { width: 220px; }
+
+            /* 테이블 헤더: 2칸만 표시 */
             .yoon-table-header {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: auto 1fr;
             }
-            /* 사진·후보자 헤더 숨김 (왼칸에 합침) */
             .yoon-table-header div:nth-child(2),
-            .yoon-table-header div:nth-child(3) {
-                display: none;
-            }
-            .yoon-table-header div:first-child {
-                border-right: 1px solid #ddd;
-            }
+            .yoon-table-header div:nth-child(3) { display: none; }
+            .yoon-table-header div:first-child { border-right: 1px solid #ddd; }
 
+            /* 행: flex row — evidence가 높아도 왼쪽 셀 높이에 영향 없음 */
             .yoon-row {
-                grid-template-columns: 1fr 1fr;
-                grid-template-rows: auto;
+                display: flex;
+                flex-direction: row;
+                align-items: stretch;
             }
 
-            /* 왼칸: 선거/지역 + 사진 + 후보자 정보를 세로로 쌓음 */
-            .yoon-cell.cell-region {
-                grid-column: 1;
-                grid-row: 1;
+            /* 왼쪽 wrapper: region·photo·info를 flex column으로 묶어
+               evidence 칸의 높이와 완전히 분리 */
+            .yoon-left-col {
+                flex: 0 0 auto;
+                display: flex;
                 flex-direction: column;
-                align-items: center;
-                border-right: 1px solid #eee;
-                border-bottom: none;
-            }
-            .yoon-cell.cell-photo {
-                grid-column: 1;
-                grid-row: 2;
-                border-right: 1px solid #eee;
-                border-bottom: none;
                 justify-content: center;
-            }
-            .yoon-cell.cell-info {
-                grid-column: 1;
-                grid-row: 3;
                 border-right: 1px solid #eee;
-                border-bottom: none;
+                box-sizing: border-box;
             }
 
-            /* 오른칸: 근거가 3행 전체를 차지 */
-            .yoon-cell.cell-evidence {
-                grid-column: 2;
-                grid-row: 1 / 4;
-                align-items: center;
-                border-left: 1px solid #eee;
-            }
-
-            /* 구분선 제거 */
-            .yoon-cell:not(:last-child) {
+            /* 왼쪽 셀 공통: 작은 패딩으로 간격 제어 */
+            .yoon-left-col .yoon-cell {
+                padding: 12px 5px;
                 border-right: none;
             }
 
-            .evidence-text {
-                font-size: 13px;
+            .yoon-left-col .yoon-cell.cell-region {
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 3px;
             }
 
-            .yoon-box {
-                padding: 15px;
+            /* 지역명 한 줄 고정 */
+            .region-text {
+                white-space: nowrap;
             }
 
-            /* 4번: 선거/지역+사진+후보자 칸 세로 공간 조정
-               (.yoon-row .yoon-cell 특정도 0,2,0으로 데스크탑 0,1,0 확실히 오버라이드) */
-            .yoon-row .yoon-cell {
-                padding: 15px 12px;
-            }
-            .yoon-cell.cell-region {
-                gap: 2px;
-            }
-            .yoon-cell.cell-info {
-                gap: 2px;
+            .yoon-left-col .yoon-cell.cell-photo {
+                justify-content: center;
+                align-items: center;
+                padding-bottom: 3px;
             }
 
-            /* 5번: 헤더 grid 비율 조정 */
-            .yoon-table-header {
-                grid-template-columns: 0.75fr 1fr;
+            .yoon-left-col .yoon-cell.cell-info {
+                justify-content: flex-start;
+                align-items: center;
+                gap: 1px;
+                padding-top: 3px;
             }
-            .yoon-row {
-                grid-template-columns: 0.75fr 1fr;
+
+            /* evidence: 남은 공간 차지, wrapper border-right으로 구분선 대체 */
+            .yoon-cell.cell-evidence {
+                flex: 1;
+                border-left: none;
+                align-items: center;
+                padding: 10px;
             }
-            /* 모바일에서는 th-desktop 숨기고 th-mobile 표시 */
+
+            .evidence-text { font-size: 13px; }
+            .yoon-box { padding: 15px; }
+            .info-number { color: #222; }
+
+            /* 헤더 텍스트 */
             .th-desktop { display: none; }
             .th-mobile  { display: inline; }
-            /* PC only 헤더 셀은 모바일에서 숨김 (display:none 이미 위에서) */
             .th-pc-only { display: none; }
         }
     </style>
@@ -474,7 +461,7 @@
                 cell1.className = 'yoon-cell cell-region';
                 cell1.innerHTML = `
                     <span class="election-badge">${c.election}</span>
-                    <span class="region-text">${c.region}</span>
+                    <span class="region-text" style="white-space:nowrap">${c.region}</span>
                 `;
 
                 // 셀 2: 사진
@@ -537,9 +524,20 @@
                     cell4.appendChild(ev);
                 }
 
-                row.appendChild(cell1);
-                row.appendChild(cell2);
-                row.appendChild(cell3);
+                // 모바일에서는 왼쪽 3개 셀을 flex column wrapper로 묶어
+                // evidence 칸 높이가 늘어나도 왼쪽 셀 간격에 영향을 주지 않도록 분리
+                if (window.innerWidth <= 768) {
+                    const leftCol = document.createElement('div');
+                    leftCol.className = 'yoon-left-col';
+                    leftCol.appendChild(cell1);
+                    leftCol.appendChild(cell2);
+                    leftCol.appendChild(cell3);
+                    row.appendChild(leftCol);
+                } else {
+                    row.appendChild(cell1);
+                    row.appendChild(cell2);
+                    row.appendChild(cell3);
+                }
                 row.appendChild(cell4);
                 list.appendChild(row);
             });
@@ -549,6 +547,19 @@
                 const hashId = decodeURIComponent(window.location.hash.slice(1));
                 const target = document.getElementById(hashId);
                 if (target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+            }
+
+            // 모바일: 1열 너비를 가장 넓은 셀 기준으로 통일
+            if (window.innerWidth <= 768) {
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    const leftCols = Array.from(document.querySelectorAll('#yoon-list .yoon-left-col'));
+                    if (!leftCols.length) return;
+                    const maxW = Math.ceil(Math.max(...leftCols.map(el => el.getBoundingClientRect().width)));
+                    leftCols.forEach(el => { el.style.flex = `0 0 ${maxW}px`; });
+                    // 헤더 첫 번째 열도 동일 너비로 맞춤
+                    const header = document.querySelector('.yoon-table-header');
+                    if (header) header.style.gridTemplateColumns = `${maxW}px 1fr`;
+                }));
             }
         }
 

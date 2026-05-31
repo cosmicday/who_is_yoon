@@ -257,7 +257,7 @@ body {
 .candidate-number {
     font-size: 13px;
     font-weight: 700;
-    color: #113468;
+    color: #222;
 }
 
 .candidate-name {
@@ -454,7 +454,7 @@ body {
         min-width: 110px;
         max-width: 110px;
         flex-shrink: 0;
-        padding: 10px 8px;
+        padding: 10px 8px 2px;
         text-align: center;
     }
 
@@ -521,6 +521,13 @@ body {
         scrollbar-width: thin;
         scrollbar-color: #bbb #efefef;
     }
+
+/* ── PC 전용: 후보자 카드 기호·이름·정당 간격 30% 감소 ── */
+@media (min-width: 769px) {
+    .candidate-info {
+        gap: 3px;
+    }
+}
 
 @media (max-width: 400px) {
     .btn-email, .btn-yoon { font-size: 11px; padding: 6px 9px; }
