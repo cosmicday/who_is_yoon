@@ -251,7 +251,7 @@ d3.json("geo/local.json").then(function(data) {
         const bbox = ulleungNode.getBBox();
         g.append("circle")
             .attr("id", "dokdo-marker").attr("class", "island-marker")
-            .attr("cx", bbox.x + 670).attr("cy", bbox.y + 200).attr("r", 3)
+            .attr("cx", bbox.x + 670 * (width / 640)).attr("cy", bbox.y + 200 * (width / 640)).attr("r", 3)
             .style("fill", "#ccc")
             .on("mouseover", function() {
                 tooltip.style("display", "block").html("경상북도 울릉군");

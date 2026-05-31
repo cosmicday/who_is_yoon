@@ -197,7 +197,7 @@
 
         /* 셀 4: 근거 */
         .cell-evidence {
-            align-items: flex-start;
+            align-items: center;
         }
 
         .evidence-text {
@@ -251,6 +251,9 @@
 
         /* ── 모바일: 4칸 → 2칸 ── */
         @media (max-width: 768px) {
+            .header-image {
+                width: 220px;
+            }
             .yoon-table-header {
                 grid-template-columns: 1fr 1fr;
             }
@@ -296,6 +299,7 @@
                 grid-column: 2;
                 grid-row: 1 / 4;
                 align-items: center;
+                border-left: 1px solid #eee;
             }
 
             /* 구분선 제거 */
@@ -311,12 +315,10 @@
                 padding: 15px;
             }
 
-            /* 4번: 선거/지역+사진+후보자 칸 세로 공간 60% 축소 */
-            .yoon-cell {
-                padding: 6px 12px;
-            }
-            .yoon-row {
-                min-height: 40px;
+            /* 4번: 선거/지역+사진+후보자 칸 세로 공간 조정
+               (.yoon-row .yoon-cell 특정도 0,2,0으로 데스크탑 0,1,0 확실히 오버라이드) */
+            .yoon-row .yoon-cell {
+                padding: 15px 12px;
             }
             .yoon-cell.cell-region {
                 gap: 2px;
@@ -327,7 +329,7 @@
 
             /* 5번: 헤더 텍스트 변경 + grid 비율 조정 (선거/지역 40% 축소) */
             .yoon-table-header {
-                grid-template-columns: 0.6fr 1fr;
+                grid-template-columns: 0.75fr 1fr;
             }
             .yoon-table-header div:first-child::before {
                 content: 'YOON';
@@ -349,7 +351,7 @@
                 font-size: 12px;
             }
             .yoon-row {
-                grid-template-columns: 0.6fr 1fr;
+                grid-template-columns: 0.75fr 1fr;
             }
         }
     </style>
@@ -375,7 +377,7 @@
                 <div>선거 / 지역</div>
                 <div>사진</div>
                 <div>후보자</div>
-                <div>WHY YOON?</div>
+                <div>WHY</div>
             </div>
 
             <div id="yoon-list"></div>

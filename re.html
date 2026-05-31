@@ -52,9 +52,9 @@ let persistentlySelectedName = null;
 const pendingRegion = new URLSearchParams(window.location.search).get('region');
 
 // ── 지역 색상 제어 ──────────────────────────────────────────
-// 재보궐 지도는 선거 있는 지역만 컬러, 없는 지역은 #e8e8e8
+// 재보궐 지도는 선거 있는 지역만 컬러, 없는 지역은 #ccc
 function getInitialColor(name) {
-    return reData[name] ? getRegionColor(name) : "#e8e8e8";
+    return reData[name] ? getRegionColor(name) : "#ccc";
 }
 
 function setRegionColor(name, color) {
@@ -225,7 +225,7 @@ d3.json("geo/re.json").then(function(data) {
         const bbox = gyeongbukNode.getBBox();
         g.append("circle")
             .attr("id", "dokdo-marker").attr("class", "island-marker")
-            .attr("cx", bbox.x + bbox.width + 170).attr("cy", bbox.y - 110).attr("r", 3)
+            .attr("cx", bbox.x + bbox.width + 170 * (width / 640)).attr("cy", bbox.y - 110 * (width / 640)).attr("r", 3)
             .style("fill", "#ccc")
             .on("mouseover", () => tooltip.style("display", "block").html("독도"))
             .on("mousemove", e => tooltip.style("top", (e.pageY - 10) + "px").style("left", (e.pageX + 10) + "px"))

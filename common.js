@@ -172,8 +172,10 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
     const adjBase = baseScale * ratio;
     const adjMax  = maxScale  * ratio;
     // 3번: 모바일 초기 위치 — 한반도 중앙이 화면에 오도록 조정
-    const adjTX = isMobile ? mapW * -0.35 : translateX * ratio;
-    const adjTY = isMobile ? mapW * -0.45 : translateY * ratio;
+    // adjTX: 음수 → 왼쪽 이동 / 양수 → 오른쪽 이동
+    // adjTY: 음수 → 위 이동   / 양수 → 아래 이동
+    const adjTX = isMobile ? mapW * 0.05 : translateX * ratio;
+    const adjTY = isMobile ? mapW * 0.10 : translateY * ratio;
     const adjInitScale = mobileInitScale * ratio;
 
     const scales = Array.from(
@@ -182,7 +184,7 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
     );
 
     const zoom = d3.zoom()
-        .scaleExtent([adjBase, adjMax])
+        .scaleExtent([isMobile ? adjInitScale : adjBase, adjMax])
         .filter(event => {
             if (event.type === "wheel" && event.ctrlKey) return false;
             return !event.button;

@@ -204,7 +204,7 @@ d3.json("geo/metro.json").then(function(data) {
         const bbox = gyeongbukNode.getBBox();
         g.append("circle")
             .attr("id", "dokdo-marker").attr("class", "island-marker")
-            .attr("cx", bbox.x + 345).attr("cy", bbox.y + 45).attr("r", 3)
+            .attr("cx", bbox.x + 345 * (width / 640)).attr("cy", bbox.y + 45 * (width / 640)).attr("r", 3)
             .style("fill", "#ccc")
             .on("mouseover", function() {
                 tooltip.style("display", "block").html("경상북도");
