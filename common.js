@@ -231,38 +231,44 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
     svg.call(zoom).on("dblclick.zoom", null).call(zoom.transform, initial);
 
     // 모바일: 지도 팬 한계 도달 시 페이지 스크롤로 넘기기
-    // - d3.zoom 리스너가 먼저 등록된 후 추가해야 transform이 갱신된 뒤에 읽힘
+    // capture 페이즈에서 D3 처리 전 transform을 저장,
+    // bubble 페이즈(D3 처리 후)에서 실제 이동량과 비교
     if (isMobile) {
-        let lastTouchY = null;
-        let lastTouchX = null;
-        let prevTransY  = null;
         const svgEl = svg.node();
+        let lastTouchY  = null;
+        let lastTouchX  = null;
+        let preEventY   = null; // D3가 처리하기 직전의 transform.y
 
         svgEl.addEventListener('touchstart', e => {
-            lastTouchY  = e.touches[0].clientY;
-            lastTouchX  = e.touches[0].clientX;
-            prevTransY  = d3.zoomTransform(svgEl).y;
+            lastTouchY = e.touches[0].clientY;
+            lastTouchX = e.touches[0].clientX;
+            preEventY  = d3.zoomTransform(svgEl).y;
         }, { passive: true });
 
+        // ① capture 페이즈: D3 bubble 리스너보다 먼저 실행 → 처리 前 transform 저장
+        svgEl.addEventListener('touchmove', e => {
+            preEventY = d3.zoomTransform(svgEl).y;
+        }, { capture: true, passive: true });
+
+        // ② bubble 페이즈: D3가 이미 transform을 갱신한 뒤 실행 → 실제 이동량 비교
         svgEl.addEventListener('touchmove', e => {
             if (lastTouchY === null) return;
-            const curY      = e.touches[0].clientY;
-            const curX      = e.touches[0].clientX;
-            const curTransY = d3.zoomTransform(svgEl).y;
+            const curY       = e.touches[0].clientY;
+            const curX       = e.touches[0].clientX;
+            const postEventY = d3.zoomTransform(svgEl).y;
 
-            const dTouchY    = lastTouchY - curY;           // 양수 = 손가락 위 = 페이지 아래
-            const dTouchX    = Math.abs(lastTouchX - curX);
-            const dTransformY = Math.abs(curTransY - prevTransY);
+            const dTouchY  = lastTouchY - curY;            // 양수 = 손가락 위 = 페이지 아래
+            const dTouchX  = Math.abs(lastTouchX - curX);
+            const dMap     = Math.abs(postEventY - preEventY); // D3가 실제로 움직인 양
 
-            // 세로 스와이프가 우세하고 지도가 실제로 안 움직인 경우 → 페이지 스크롤
-            if (Math.abs(dTouchY) > dTouchX && Math.abs(dTouchY) > 2 && dTransformY < 1) {
-                window.scrollBy({ top: dTouchY, behavior: 'instant' });
+            // 세로 스와이프 우세 + D3가 지도를 안 움직임 → 페이지 스크롤
+            if (Math.abs(dTouchY) > dTouchX && Math.abs(dTouchY) > 2 && dMap < 1) {
+                window.scrollBy(0, dTouchY);
             }
 
             lastTouchY = curY;
             lastTouchX = curX;
-            prevTransY  = curTransY;
-        }, { passive: true });
+        }, { passive: true }); // D3 뒤에 등록됐으므로 D3 이후 실행
     }
 
     return zoom;
