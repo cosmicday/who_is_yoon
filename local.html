@@ -45,10 +45,8 @@
 <script>
 const IMG_DIR = 'images/local/';
 
-// 기초선거가 없는 광역시·도
 const NO_ELECTION_REGIONS = new Set(["세종특별자치시", "제주특별자치도"]);
 
-// 검색어 약칭 → 전체명 변환 테이블
 const ABBR_MAP = {
     "충남": "충청남도", "충북": "충청북도",
     "경남": "경상남도", "경북": "경상북도",
@@ -78,7 +76,6 @@ createMapPage({
     isNoElection:  name => NO_ELECTION_REGIONS.has(name.split(' ')[0]),
     noElectionMsg: '해당 지역에서는 기초자치단체장 선거가 치러지지 않습니다!',
 
-    // 약칭 검색 지원
     expandTerm: term => {
         let t = term;
         for (const [abbr, full] of Object.entries(ABBR_MAP))
@@ -86,7 +83,6 @@ createMapPage({
         return t;
     },
 
-    // imgSrc는 raw 이름(trailing 알파벳 포함) 사용
     cardOpts: (c, _displayName) => ({
         borderColor: partyColors[c.정당] || "#555",
         imgSrc:      c.사진 || `${IMG_DIR}${c.이름}.jpg`,
@@ -94,8 +90,6 @@ createMapPage({
         party:       c.정당 || "무소속",
     }),
 
-    // 울릉군 선택 시 독도 마커도 함께 색상 변경
-    // local GeoJSON은 속성 필터 방식 유지 (다중 폴리곤 대응)
     setFill: (g, name, color) => {
         g.selectAll("path.land")
             .filter(d => d.properties && d.properties.SIG_KOR_NM === name)
@@ -104,7 +98,6 @@ createMapPage({
     },
 
     onGeoLoaded: ({ g, regions, width, tooltip, setRegionColor, initialFill, getPersisted, deactivateRegion }) => {
-        // 독도 마커 (울릉군 bbox 기준)
         let ulleungNode = null;
         regions.each(function(d) { if (d.properties.SIG_KOR_NM?.includes("울릉군")) ulleungNode = this; });
 
@@ -129,7 +122,6 @@ createMapPage({
                 });
         }
 
-        // YOON 지역 붉은 테두리 오버레이
         const yoonRegions = new Set();
         for (const large in localData)
             for (const small in localData[large])

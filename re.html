@@ -53,9 +53,7 @@ createMapPage({
     getCandidates: name => reData[name] || [],
     geoKey:        d => d.properties.SIDO_SGG,
 
-    // 선거 있는 지역은 컬러, 없는 지역은 #ccc
     initialFill: name => reData[name] ? getRegionColor(name) : '#ccc',
-    // 데이터 없는 지역 클릭 시 선택 없이 패널만 표시
     hasData:     name => !!reData[name],
     noElectionMsg: '해당 지역에서는 재보궐 선거가 치러지지 않습니다!',
 
@@ -67,7 +65,6 @@ createMapPage({
     }),
 
     onGeoLoaded: ({ g, regions, width, tooltip }) => {
-        // 독도 마커 (경북 bbox 기준, 장식용 — 지역 활성화 없음)
         const gyeongbukPath = g.selectAll("path.land")
             .filter(d => d.properties && d.properties.SIDO_SGG && d.properties.SIDO_SGG.startsWith("경북"));
         let gyeongbukNode = null;
@@ -84,7 +81,6 @@ createMapPage({
                 .on("mouseout", () => tooltip.style("display", "none"));
         }
 
-        // YOON 지역 붉은 테두리 오버레이
         const yoonOverlay = g.append("g").attr("class", "yoon-overlay");
         for (const rName in reData) {
             if ((reData[rName] || []).some(c => c.yoon)) {

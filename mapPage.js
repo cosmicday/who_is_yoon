@@ -1,6 +1,3 @@
-// ============================================================
-//  MAP PAGE FACTORY  ·  metro / edu / local / re 공통 로직
-// ============================================================
 function createMapPage(cfg) {
     const {
         election, geoFile,
@@ -18,32 +15,24 @@ function createMapPage(cfg) {
         translateX = 40, translateY = 40,
     } = cfg;
 
-    // ── 모바일 여부 ──────────────────────────────────────────
     const isMobile = window.innerWidth <= 768;
 
-    // ── 모바일 후보자 카드 높이 균일화 (뷰-로컬, Plan A) ─────
-    // 전역 ratchet 없음. 렌더링된 컨테이너 안에서만 독립 동작.
-    // YOON 카드가 있을 때만 그 높이를 기준으로 같은 뷰 내 카드들을 통일.
     function equalizeCardHeights(containerEl) {
         if (!isMobile) return;
         requestAnimationFrame(function() {
             const cards = Array.from(containerEl.querySelectorAll('.candidate-card'));
             if (!cards.length) return;
 
-            // 이전 뷰의 min-height 흔적 제거
             cards.forEach(c => { c.style.minHeight = ''; });
 
-            // 현재 뷰 내 YOON 카드만 탐색
             const yoonCards = cards.filter(c => c.querySelector('.yoon-badge'));
-            if (!yoonCards.length) return; // YOON 없음 → align-items:stretch로 자연 통일
+            if (!yoonCards.length) return;
 
-            // YOON 카드 기준 높이 측정 후 전체 적용
             const refH = Math.max(...yoonCards.map(c => c.offsetHeight));
             cards.forEach(c => { c.style.minHeight = refH + 'px'; });
         });
     }
 
-    // ── 캔버스 크기 ──────────────────────────────────────────
     const mapWrapper = document.getElementById("map-wrapper");
     const rawW = mapWrapper ? Math.round(mapWrapper.getBoundingClientRect().width) : 640;
     const width = rawW > 0 ? rawW : 640, height = width;
@@ -55,7 +44,6 @@ function createMapPage(cfg) {
     let persistentlySelectedName = null;
     const pendingRegion = new URLSearchParams(window.location.search).get('region');
 
-    // ── fill 제어 ────────────────────────────────────────────
     const _fill = setFill
         ? (name, color) => setFill(g, name, color)
         : (name, color) => d3.select(`path[data-name='${name}']`).style("fill", color);
@@ -67,7 +55,6 @@ function createMapPage(cfg) {
         updateInfoPanel(null);
     }
 
-    // ── 지역 활성화 ──────────────────────────────────────────
     window.activateRegion = function(name) {
         document.getElementById("search-input").value = "";
         if (persistentlySelectedName)
@@ -77,21 +64,18 @@ function createMapPage(cfg) {
         updateInfoPanel(name);
     };
 
-    // ── 검색 ─────────────────────────────────────────────────
     window.executeSearch = function() {
         const rawTerm = document.getElementById("search-input").value.trim().toLowerCase();
         const iw = d3.select("#info-wrapper");
 
         if (!rawTerm) { updateInfoPanel(persistentlySelectedName); return; }
 
-        // 모바일: 결과 업데이트 전에 info-wrapper 상단으로 스크롤 (화면 튀는 현상 방지)
         const iwEl = document.getElementById('info-wrapper');
         if (window.innerWidth <= 768 && iwEl) {
             iwEl.scrollTop = 0;
             iwEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // 검색 시작 → 선택된 지역 불 끄기
         if (persistentlySelectedName) {
             setRegionColor(persistentlySelectedName, initialFill(persistentlySelectedName));
             persistentlySelectedName = null;
@@ -134,19 +118,17 @@ function createMapPage(cfg) {
         equalizeCardHeights(candSec.node());
     };
 
-    // ── 인포패널 갱신 ─────────────────────────────────────────
     function updateInfoPanel(regionName) {
         const iw = d3.select("#info-wrapper");
         iw.selectAll(".info-divider,.candidate-list,.search-results,.no-candidate-msg").remove();
 
-        // 모바일: 내부 스크롤 위치 초기화
         const iwEl = document.getElementById('info-wrapper');
         if (window.innerWidth <= 768 && iwEl) iwEl.scrollTop = 0;
 
         if (!regionName) {
             d3.select("#info-title").text("").style("display", "none");
             d3.select("#info-desc").text("YOON을 찾아봅시다!").style("color", "#000").style("font-size", "14px");
-            iw.append("hr").attr("class", "info-divider"); // 구분선 항상 유지
+            iw.append("hr").attr("class", "info-divider");
             return;
         }
 
@@ -179,7 +161,6 @@ function createMapPage(cfg) {
         }
     }
 
-    // ── 지도 렌더링 ──────────────────────────────────────────
     d3.json(geoFile).then(function(data) {
         const projection = d3.geoIdentity().reflectY(true).fitSize([width, height], data);
         const path       = d3.geoPath().projection(projection);

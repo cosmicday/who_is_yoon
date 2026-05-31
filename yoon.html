@@ -54,7 +54,6 @@
             margin: 0;
         }
 
-        /* 테이블 헤더 */
         .yoon-table-header {
             display: grid;
             grid-template-columns: 15fr 15fr 15fr 55fr;
@@ -75,7 +74,6 @@
             border-right: 1px solid #ddd;
         }
 
-        /* 행 */
         .yoon-row {
             display: grid;
             grid-template-columns: 15fr 15fr 15fr 55fr;
@@ -92,7 +90,6 @@
             background: #fdf5f5;
         }
 
-        /* 각 셀 공통 */
         .yoon-cell {
             padding: 14px 12px;
             display: flex;
@@ -103,7 +100,6 @@
             border-right: 1px solid #eee;
         }
 
-        /* 셀 1: 선거 + 지역 - 가운데 정렬 */
         .cell-region {
             flex-direction: column;
             justify-content: center;
@@ -128,7 +124,6 @@
             line-height: 1.4;
         }
 
-        /* 셀 2: 사진 - 가운데 정렬 */
         .cell-photo {
             justify-content: center;
             align-items: center;
@@ -143,7 +138,6 @@
             background: #f5f5f5;
         }
 
-        /* 셀 3: 기호 + 이름 + 정당 + 뱃지 - 가운데 정렬 */
         .cell-info {
             flex-direction: column;
             justify-content: center;
@@ -195,7 +189,6 @@
             object-fit: contain;
         }
 
-        /* 셀 4: 근거 */
         .cell-evidence {
             align-items: center;
         }
@@ -249,16 +242,13 @@
             line-height: 0;
         }
 
-        /* ── 모바일: flex row (왼쪽 wrapper + evidence) ── */
-        /* PC: th-mobile 숨김, th-pc-only 표시 */
         .th-mobile  { display: none; }
         .th-desktop { display: inline; }
-        .th-pc-only { display: table-cell; }  /* 헤더 셀 기본 표시 */
+        .th-pc-only { display: table-cell; }
 
         @media (max-width: 768px) {
             .header-image { width: 220px; }
 
-            /* 테이블 헤더: 2칸만 표시 */
             .yoon-table-header {
                 grid-template-columns: auto 1fr;
             }
@@ -266,15 +256,12 @@
             .yoon-table-header div:nth-child(3) { display: none; }
             .yoon-table-header div:first-child { border-right: 1px solid #ddd; }
 
-            /* 행: flex row — evidence가 높아도 왼쪽 셀 높이에 영향 없음 */
             .yoon-row {
                 display: flex;
                 flex-direction: row;
                 align-items: stretch;
             }
 
-            /* 왼쪽 wrapper: region·photo·info를 flex column으로 묶어
-               evidence 칸의 높이와 완전히 분리 */
             .yoon-left-col {
                 flex: 0 0 auto;
                 display: flex;
@@ -284,7 +271,6 @@
                 box-sizing: border-box;
             }
 
-            /* 왼쪽 셀 공통: 작은 패딩으로 간격 제어 */
             .yoon-left-col .yoon-cell {
                 padding: 12px 5px;
                 border-right: none;
@@ -295,10 +281,9 @@
                 justify-content: center;
                 align-items: center;
                 gap: 3px;
-                padding-bottom: 5px;   /* 12px → 5px (region↔사진 간격 60% 감소) */
+                padding-bottom: 5px;
             }
 
-            /* 지역명 한 줄 고정 */
             .region-text {
                 white-space: nowrap;
             }
@@ -306,7 +291,7 @@
             .yoon-left-col .yoon-cell.cell-photo {
                 justify-content: center;
                 align-items: center;
-                padding-top: 5px;      /* 12px → 5px (region↔사진 간격 60% 감소) */
+                padding-top: 5px;
                 padding-bottom: 3px;
             }
 
@@ -317,7 +302,6 @@
                 padding-top: 3px;
             }
 
-            /* evidence: 남은 공간 차지, wrapper border-right으로 구분선 대체 */
             .yoon-cell.cell-evidence {
                 flex: 1;
                 border-left: none;
@@ -329,7 +313,6 @@
             .yoon-box { padding: 15px; }
             .info-number { color: #222; }
 
-            /* 헤더 텍스트 */
             .th-desktop { display: none; }
             .th-mobile  { display: inline; }
             .th-pc-only { display: none; }
@@ -368,8 +351,6 @@
     </div>
 
     <script>
-
-        // 선거 페이지 URL 매핑
         const electionPages = {
             '광역단체장': 'metro.html',
             '기초단체장': 'local.html',
@@ -377,7 +358,6 @@
             '재보궐': 're.html'
         };
 
-        // 일관된 앵커 ID 생성
         function makeYoonAnchorId(election, name) {
             return 'yoon-' + election + '-' + name.trim();
         }
@@ -458,7 +438,6 @@
                 row.className = 'yoon-row';
                 row.id = anchorId;
 
-                // 셀 1: 선거 + 지역
                 const cell1 = document.createElement('div');
                 cell1.className = 'yoon-cell cell-region';
                 cell1.innerHTML = `
@@ -466,7 +445,6 @@
                     <span class="region-text" style="white-space:nowrap">${c.region}</span>
                 `;
 
-                // 셀 2: 사진
                 const cell2 = document.createElement('div');
                 cell2.className = 'yoon-cell cell-photo';
                 const img = document.createElement('img');
@@ -475,7 +453,6 @@
                 img.onerror = function () { this.src = 'images/default.jpg'; };
                 cell2.appendChild(img);
 
-                // 셀 3: 기호 + 이름 + 정당 + 뱃지
                 const cell3 = document.createElement('div');
                 cell3.className = 'yoon-cell cell-info';
                 if (c.number && c.number !== '-') {
@@ -495,14 +472,12 @@
                     party.textContent = c.party;
                     cell3.appendChild(party);
                 }
-                // 뱃지 → 선거 페이지로 이동
                 const badge = document.createElement('a');
                 badge.className = 'yoon-badge-link';
                 badge.href = electionPageUrl;
                 badge.innerHTML = `<img src="favicon.png" alt="" width="12" height="12"> YOON`;
                 cell3.appendChild(badge);
 
-                // 셀 4: 근거
                 const cell4 = document.createElement('div');
                 cell4.className = 'yoon-cell cell-evidence';
                 if (c.evidence) {
@@ -526,8 +501,6 @@
                     cell4.appendChild(ev);
                 }
 
-                // 모바일에서는 왼쪽 3개 셀을 flex column wrapper로 묶어
-                // evidence 칸 높이가 늘어나도 왼쪽 셀 간격에 영향을 주지 않도록 분리
                 if (window.innerWidth <= 768) {
                     const leftCol = document.createElement('div');
                     leftCol.className = 'yoon-left-col';
@@ -544,28 +517,24 @@
                 list.appendChild(row);
             });
 
-            // URL에 앵커가 있으면 해당 위치로 스크롤
             if (window.location.hash) {
                 const hashId = decodeURIComponent(window.location.hash.slice(1));
                 const target = document.getElementById(hashId);
                 if (target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
             }
 
-            // 모바일: 1열 너비를 가장 넓은 셀 기준으로 통일
             if (window.innerWidth <= 768) {
                 requestAnimationFrame(() => requestAnimationFrame(() => {
                     const leftCols = Array.from(document.querySelectorAll('#yoon-list .yoon-left-col'));
                     if (!leftCols.length) return;
                     const maxW = Math.ceil(Math.max(...leftCols.map(el => el.getBoundingClientRect().width)));
                     leftCols.forEach(el => { el.style.flex = `0 0 ${maxW}px`; });
-                    // 헤더 첫 번째 열도 동일 너비로 맞춤
                     const header = document.querySelector('.yoon-table-header');
                     if (header) header.style.gridTemplateColumns = `${maxW}px 1fr`;
                 }));
             }
         }
 
-        // 폰트 로드 완료 후 렌더링 → 첫 로드 시 레이아웃 깨짐 방지
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(renderRows);
         } else {

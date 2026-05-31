@@ -60,14 +60,12 @@ createMapPage({
         party:       c.정당 || "무소속",
     }),
 
-    // 경상북도 선택 시 독도 마커도 함께 색상 변경
     setFill: (g, name, color) => {
         d3.select(`path[data-name='${name}']`).style("fill", color);
         if (name === "경상북도") d3.select("#dokdo-marker").style("fill", color);
     },
 
     onGeoLoaded: ({ g, regions, width, tooltip, setRegionColor, initialFill, getPersisted, deactivateRegion }) => {
-        // 독도 마커 (경상북도 bbox 기준)
         let gyeongbukNode = null;
         regions.each(function(d) { if (d.properties.CTP_KOR_NM === "경상북도") gyeongbukNode = this; });
 
@@ -92,7 +90,6 @@ createMapPage({
                 });
         }
 
-        // YOON 지역 붉은 테두리 오버레이
         const yoonOverlay = g.append("g").attr("class", "yoon-overlay");
         for (const rName in metroData) {
             if ((metroData[rName] || []).some(c => c.yoon)) {
@@ -103,7 +100,6 @@ createMapPage({
                     .style("pointer-events", "none");
             }
         }
-        // 독도 마커 YOON 붉은 테두리 (경상북도가 YOON 지역일 경우)
         if (gyeongbukNode && (metroData["경상북도"] || []).some(c => c.yoon)) {
             const bbox = gyeongbukNode.getBBox();
             yoonOverlay.append("circle")

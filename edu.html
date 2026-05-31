@@ -53,20 +53,17 @@ createMapPage({
     getCandidates: name => eduData[name] || [],
     geoKey:        d => d.properties.CTP_KOR_NM,
 
-    // 교육감은 무당적 — 테두리 단색, 기호·정당 없음
     cardOpts: (c, name) => ({
         borderColor: "#888",
         imgSrc:      c.사진 || `${IMG_DIR}${name}.jpg`,
     }),
 
-    // 경상북도 선택 시 독도 마커도 함께 색상 변경
     setFill: (g, name, color) => {
         d3.select(`path[data-name='${name}']`).style("fill", color);
         if (name === "경상북도") d3.select("#dokdo-marker").style("fill", color);
     },
 
     onGeoLoaded: ({ g, regions, width, tooltip, setRegionColor, initialFill, getPersisted, deactivateRegion }) => {
-        // 독도 마커 (경상북도 bbox 기준)
         let gyeongbukNode = null;
         regions.each(function(d) { if (d.properties.CTP_KOR_NM === "경상북도") gyeongbukNode = this; });
 
@@ -90,7 +87,6 @@ createMapPage({
                     getPersisted() === name ? deactivateRegion(name) : window.activateRegion(name);
                 });
         }
-        // edu: YOON 오버레이 없음
     },
 });
 </script>

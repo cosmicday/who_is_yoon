@@ -1,6 +1,3 @@
-// ============================================================
-//  UTILITIES
-// ============================================================
 function copyEmail() {
     navigator.clipboard.writeText("whoisyoonkr@gmail.com").then(() => {
         alert("이메일 주소가 복사되었습니다!\n원하시는 메일에서 붙여넣기 해주세요.");
@@ -9,11 +6,7 @@ function copyEmail() {
     });
 }
 
-// ============================================================
-//  COLOR MAP  (전체명 + 재보궐 약칭 통합)
-// ============================================================
 const colorMap = {
-    // 전체명 — 광역단체장 / 교육감 / 기초단체장 지도
     "서울특별시":         "#ae1932",
     "부산광역시":         "#e5007f",
     "대구광역시":         "#008837",
@@ -30,7 +23,6 @@ const colorMap = {
     "경상북도":           "#0071bb",
     "경상남도":           "#f15a38",
     "제주특별자치도":     "#868686",
-    // 약칭 — 재보궐 지도 (전남·광주 분리, 동일 색상)
     "서울": "#ae1932",
     "부산": "#e5007f",
     "대구": "#008837",
@@ -50,19 +42,12 @@ const colorMap = {
     "제주": "#868686",
 };
 
-/**
- * 지역명 → 색상
- * 전체명("서울특별시"), 약칭("서울"), 복합명("경기도 수원시", "경기 평택을") 모두 처리
- */
 function getRegionColor(name) {
     if (!name) return "#ccc";
     if (colorMap[name]) return colorMap[name];
     return colorMap[name.split(" ")[0]] || "#777";
 }
 
-// ============================================================
-//  PARTY COLORS
-// ============================================================
 const partyColors = {
     "더불어민주당": "#003B96",
     "국민의힘":     "#E61E2B",
@@ -79,16 +64,10 @@ const partyColors = {
     "자유와혁신":   "#A50034",
 };
 
-// ============================================================
-//  YOON HELPERS
-// ============================================================
-
-/** YOON 페이지 앵커 ID 생성 */
 function makeYoonAnchorId(election, name) {
     return "yoon-" + election + "-" + name.trim();
 }
 
-/** infoBox D3 선택자에 YOON 배지 추가 */
 function appendYoonBadge(infoBox, election, name) {
     const anchorId = makeYoonAnchorId(election, name);
     const badge = infoBox.append("a")
@@ -98,26 +77,6 @@ function appendYoonBadge(infoBox, election, name) {
     badge.append("span").text("YOON");
 }
 
-// ============================================================
-//  CANDIDATE CARD BUILDER
-// ============================================================
-/**
- * 후보 카드 DOM 생성
- *
- * @param {d3.Selection} container  - 카드를 삽입할 D3 선택자
- * @param {Object}  opts
- * @param {string}  opts.borderColor  - 왼쪽 테두리 색상
- * @param {string}  opts.imgSrc       - 후보 사진 경로
- * @param {*}       [opts.number]     - 기호 (falsy면 미표시)
- * @param {string}  opts.name         - 후보 이름 (한자 없는 순수 이름)
- * @param {string}  [opts.party]      - 정당명 (falsy면 미표시)
- * @param {boolean} [opts.yoon]       - YOON 배지 표시 여부
- * @param {string}  opts.election     - 선거 종류 (앵커 ID 생성용)
- * @param {boolean} [opts.isSearch]   - 검색 결과 카드 여부 (클릭 커서·스타일 추가)
- * @param {string}  [opts.regionLabel]- 지역 뱃지 텍스트 (isSearch일 때 표시)
- * @param {Function}[opts.onClick]    - 클릭 핸들러
- * @returns {d3.Selection} 생성된 card 선택자
- */
 function buildCandidateCard(container, {
     borderColor, imgSrc,
     number, name, party,
@@ -147,22 +106,12 @@ function buildCandidateCard(container, {
     return card;
 }
 
-// ============================================================
-//  MAP ZOOM & SYRINGE UI
-// ============================================================
-// ============================================================
-/**
- * 지도 줌 및 주사기(Syringe) UI 연동
- * 모바일에서 wrapper 실제 크기 비율로 scale/translate 자동 보정
- */
 function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translateX = 40, translateY = 40 }) {
     const wrapper = document.getElementById("map-wrapper");
     const mapW = wrapper ? Math.round(wrapper.getBoundingClientRect().width) : 640;
     const isMobile = mapW < 640;
     const ratio = (mapW > 0 ? mapW : 640) / 640;
 
-    // 2번: 모바일에서 baseScale을 4단계 높임
-    // scales 배열에서 4단계 위의 값을 초기 배율로 사용
     const rawScales = Array.from(
         { length: numSteps },
         (_, i) => baseScale * Math.pow(maxScale / baseScale, i / (numSteps - 1))
@@ -171,9 +120,6 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
 
     const adjBase = baseScale * ratio;
     const adjMax  = maxScale  * ratio;
-    // 3번: 모바일 초기 위치 — 한반도 중앙이 화면에 오도록 조정
-    // adjTX: 음수 → 왼쪽 이동 / 양수 → 오른쪽 이동
-    // adjTY: 음수 → 위 이동   / 양수 → 아래 이동
     const adjTX = isMobile ? mapW * 0.05 : translateX * ratio;
     const adjTY = isMobile ? mapW * 0.10 : translateY * ratio;
     const adjInitScale = mobileInitScale * ratio;
@@ -183,13 +129,10 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
         (_, i) => adjBase * Math.pow(adjMax / adjBase, i / (numSteps - 1))
     );
 
-    // 초기 뷰 기반 이동 범위 계산
-    // - 기본 배율: 팬 완전 차단 (초기 위치에서 한 점만 허용)
-    // - 확대 시: 초기 뷰에서 보이던 영역 밖으로 나가지 못함
     const ex0 = -adjTX / adjInitScale;
     const ey0 = -adjTY / adjInitScale;
     const ex1 = (mapW - adjTX) / adjInitScale;
-    const ey1 = (mapW - adjTY) / adjInitScale;  // mapW = mapH (정사각형)
+    const ey1 = (mapW - adjTY) / adjInitScale;
 
     const zoom = d3.zoom()
         .scaleExtent([isMobile ? adjInitScale : adjBase, adjMax])
@@ -210,7 +153,6 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
             ticks.classed("active", (_, i) => i === closestIdx);
         });
 
-    // 주사기 눈금 생성 (데스크탑만 표시, 모바일은 CSS로 hidden)
     const track = d3.select(".syringe-track");
     track.html("");
 
@@ -226,26 +168,15 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
 
     ticks.append("div").attr("class", "tick-mark");
 
-    // 초기 위치·배율 설정
     const initial = d3.zoomIdentity.translate(adjTX, adjTY).scale(adjInitScale);
     svg.call(zoom).on("dblclick.zoom", null).call(zoom.transform, initial);
 
-    // 모바일: 기본 배율에서 단일 터치 → 브라우저 네이티브 세로 스크롤
-    //
-    // D3는 svg.call(zoom) 시 touch-action:none 을 SVG에 인라인으로 박는다.
-    // 이러면 window.scrollBy 같은 프로그래밍 스크롤도 막힌다.
-    //
-    // 해결: 기본 배율 + 단일 터치일 때 D3 필터에서 false 반환
-    //   → D3가 touchstart를 저장하지 않음
-    //   → touchmove 에서 저장된 데이터 없으므로 preventDefault 안 호출
-    //   → touch-action:pan-y 가 살아있어 브라우저가 세로 스크롤 처리
     if (isMobile) {
-        svg.style('touch-action', 'pan-y'); // D3의 none을 pan-y로 덮어쓰기
+        svg.style('touch-action', 'pan-y');
 
         zoom.filter(event => {
             if (event.type === 'wheel' && event.ctrlKey) return false;
             if (event.button) return false;
-            // 기본 배율 + 단일 터치 → D3 차단 → 브라우저 스크롤
             if (event.type === 'touchstart' && event.touches.length === 1) {
                 const t = d3.zoomTransform(svg.node());
                 if (Math.abs(t.k - adjInitScale) < 0.01) return false;

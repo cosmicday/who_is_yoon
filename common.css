@@ -40,7 +40,7 @@ body {
     padding: 20px;
     box-sizing: border-box;
     overflow-y: auto;
-    scrollbar-gutter: stable; /* 스크롤바 공간 항상 확보 → 검색창 너비 고정 */
+    scrollbar-gutter: stable;
 }
 
 #info-wrapper::-webkit-scrollbar { width: 8px; }
@@ -220,7 +220,6 @@ body {
     margin-top: 15px;
 }
 
-/* PC: 검색 결과를 후보자 목록과 동일하게 세로 나열 */
 .results-section {
     display: flex;
     flex-direction: column;
@@ -272,7 +271,6 @@ body {
     color: #666;
 }
 
-/* 우상단 버튼 (문의하기 / YOON) */
 .top-right-buttons {
     position: fixed;
     top: 20px;
@@ -363,7 +361,6 @@ body {
     object-fit: contain;
 }
 
-/* 면책고지 */
 .disclaimer {
     text-align: center;
     font-size: 11px;
@@ -373,9 +370,6 @@ body {
     margin-top: 20px;
 }
 
-/* ============================================================
-   RESPONSIVE — 모바일 (≤ 768px)
-   ============================================================ */
 @media (max-width: 768px) {
 
     .top-right-buttons {
@@ -415,12 +409,11 @@ body {
     #info-wrapper {
         width: 100%;
         max-width: 100%;
-        height: 55vh;        /* 고정 높이 — 내용 바뀌어도 레이아웃 불변 */
+        height: 55vh;
         min-height: 250px;
         box-sizing: border-box;
     }
 
-    /* 1번: 모바일에서 syringe-container 숨기기 */
     .syringe-container {
         display: none;
     }
@@ -473,24 +466,21 @@ body {
     .candidate-party { font-size: 12px; }
 }
 
-    /* ── 1. 지도 터치 시 툴팁 숨김 (지역명은 후보자박스에만 표시) ── */
     .tooltip {
         display: none !important;
     }
 
-    /* ── 2. 후보자 박스 / 검색결과 — 동일 높이 + 가로 스크롤 ── */
     .candidate-list {
-        align-items: stretch;       /* 모든 카드 동일 높이 (YOON 있는 카드 기준) */
+        align-items: stretch;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 6px;
     }
 
     .candidate-card {
-        justify-content: flex-start; /* 내용 위에서 정렬 → 높이 통일 시 여백은 아래 */
+        justify-content: flex-start;
     }
 
-    /* ── 3. 검색 결과 가로 스크롤 ── */
     .results-section {
         display: flex;
         flex-direction: row;
@@ -501,7 +491,6 @@ body {
         align-items: stretch;
     }
 
-    /* ── 4. 가로 스크롤 바 (Webkit / Firefox) ── */
     .candidate-list::-webkit-scrollbar,
     .results-section::-webkit-scrollbar {
         height: 4px;
@@ -522,7 +511,6 @@ body {
         scrollbar-color: #bbb #efefef;
     }
 
-/* ── PC 전용: 후보자 카드 기호·이름·정당 간격 30% 감소 ── */
 @media (min-width: 769px) {
     .candidate-info {
         gap: 3px;
