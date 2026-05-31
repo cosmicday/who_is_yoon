@@ -1,28 +1,6 @@
 // ============================================================
 //  MAP PAGE FACTORY  ·  metro / edu / local / re 공통 로직
 // ============================================================
-/**
- * @param {Object}   cfg
- * @param {string}   cfg.election        선거 종류 문자열
- * @param {string}   cfg.geoFile         GeoJSON 파일 경로
- * @param {Function} cfg.listRegions     () => string[]
- * @param {Function} cfg.getCandidates   (regionName) => candidate[]
- * @param {Function} cfg.cardOpts        (candidate, displayName) => buildCandidateCard 추가 opts
- * @param {Function} cfg.geoKey          (d3Feature) => string
- *
- * [선택 — 기본값 있음]
- * @param {Function} cfg.candidateName   (candidate) => string
- * @param {Function} cfg.initialFill     (name) => colorString
- * @param {Function} cfg.hasData         (name) => bool
- * @param {Function} cfg.isNoElection    (name) => bool
- * @param {string}   cfg.noElectionMsg
- * @param {Function} cfg.expandTerm      (rawTerm) => expandedTerm
- * @param {Function} cfg.regionMatches   (name, raw, expanded) => bool
- * @param {Function} cfg.setFill         (g, name, color) => void
- * @param {Function} cfg.onGeoLoaded     ({ svg, g, regions, zoom, width, tooltip,
- *                                          setRegionColor, initialFill,
- *                                          getPersisted, deactivateRegion }) => void
- */
 function createMapPage(cfg) {
     const {
         election, geoFile,
@@ -43,37 +21,25 @@ function createMapPage(cfg) {
     // ── 모바일 여부 ──────────────────────────────────────────
     const isMobile = window.innerWidth <= 768;
 
-    // ── 모바일 검색 placeholder 변경 ─────────────────────────
-    if (isMobile) {
-        const si = document.getElementById("search-input");
-        if (si) si.placeholder = "후보 검색";
-    }
-
-    // ── 모바일 후보자 카드 높이 균일화 ───────────────────────
-    // YOON 배지 유무와 무관하게 모든 카드가 동일 세로 길이를 갖도록
-    // 현재까지 관측된 최대 높이(ratchet)를 전역 기준으로 유지한다.
-    let maxCardH = 0;
-
-    function equalizeCardHeights() {
+    // ── 모바일 후보자 카드 높이 균일화 (뷰-로컬, Plan A) ─────
+    // 전역 ratchet 없음. 렌더링된 컨테이너 안에서만 독립 동작.
+    // YOON 카드가 있을 때만 그 높이를 기준으로 같은 뷰 내 카드들을 통일.
+    function equalizeCardHeights(containerEl) {
         if (!isMobile) return;
         requestAnimationFrame(function() {
-            const cards = document.querySelectorAll(
-                '#info-wrapper .candidate-card'
-            );
+            const cards = Array.from(containerEl.querySelectorAll('.candidate-card'));
             if (!cards.length) return;
 
-            // min-height 초기화 후 자연 높이 측정 (offsetHeight가 reflow 강제)
+            // 이전 뷰의 min-height 흔적 제거
             cards.forEach(c => { c.style.minHeight = ''; });
-            let localMax = 0;
-            cards.forEach(c => { localMax = Math.max(localMax, c.offsetHeight); });
 
-            // 전역 최대값 갱신 (감소 없음 — YOON 카드 높이 기억 유지)
-            if (localMax > maxCardH) maxCardH = localMax;
+            // 현재 뷰 내 YOON 카드만 탐색
+            const yoonCards = cards.filter(c => c.querySelector('.yoon-badge'));
+            if (!yoonCards.length) return; // YOON 없음 → align-items:stretch로 자연 통일
 
-            // 전역 최대값을 현재 모든 카드에 적용
-            if (maxCardH > 0) {
-                cards.forEach(c => { c.style.minHeight = maxCardH + 'px'; });
-            }
+            // YOON 카드 기준 높이 측정 후 전체 적용
+            const refH = Math.max(...yoonCards.map(c => c.offsetHeight));
+            cards.forEach(c => { c.style.minHeight = refH + 'px'; });
         });
     }
 
@@ -93,7 +59,6 @@ function createMapPage(cfg) {
     const _fill = setFill
         ? (name, color) => setFill(g, name, color)
         : (name, color) => d3.select(`path[data-name='${name}']`).style("fill", color);
-
     function setRegionColor(name, color) { _fill(name, color); }
 
     function deactivateRegion(name) {
@@ -119,23 +84,24 @@ function createMapPage(cfg) {
 
         if (!rawTerm) { updateInfoPanel(persistentlySelectedName); return; }
 
+        // 검색 시작 → 선택된 지역 불 끄기
+        if (persistentlySelectedName) {
+            setRegionColor(persistentlySelectedName, initialFill(persistentlySelectedName));
+            persistentlySelectedName = null;
+        }
+
         const expanded = expandTerm(rawTerm);
 
         iw.selectAll(".info-divider,.candidate-list,.search-results,.no-candidate-msg").remove();
-        d3.select("#info-title").text(`"${rawTerm}" 검색 결과`);
-        d3.select("#info-desc").text("결과를 클릭하면 해당 지역으로 이동합니다.").style("color", "#666");
+        d3.select("#info-title").text(`"${rawTerm}" 검색`).style("display", "");
+        d3.select("#info-desc").text("후보자를 클릭하면 해당 선거구로 이동합니다.").style("color", "#666").style("font-size", "");
         iw.append("hr").attr("class", "info-divider");
 
         const rc = iw.append("div").attr("class", "search-results");
-        // 모바일: 지역 섹션 생성 안 함 (후보 검색만)
-        const regSec  = isMobile ? null : rc.append("div").attr("class", "results-section");
-        const candSec = rc.append("div").attr("class", "results-section");
+        const candSec = rc.append("div").attr("class", "candidate-list");
 
-        const regionResults = [], candidateResults = [];
+        const candidateResults = [];
         listRegions().forEach(rName => {
-            // 모바일: 지역 검색 결과 제외
-            if (!isMobile && rawTerm.length > 1 && regionMatches(rName, rawTerm, expanded))
-                regionResults.push(rName);
             (getCandidates(rName) || []).forEach(c => {
                 const name = candidateName(c);
                 if (name && name.toLowerCase().includes(rawTerm))
@@ -143,18 +109,8 @@ function createMapPage(cfg) {
             });
         });
 
-        regionResults.sort((a, b) => a.localeCompare(b));
         candidateResults.sort((a, b) =>
             a.name.localeCompare(b.name) || a.regionName.localeCompare(b.regionName));
-
-        if (regSec) {
-            regionResults.forEach(rName => {
-                regSec.append("div").attr("class", "search-result-region")
-                    .style("border-left", `6px solid ${getRegionColor(rName)}`)
-                    .text(`🗺️ ${rName}`)
-                    .on("click", () => window.activateRegion(rName));
-            });
-        }
 
         candidateResults.forEach(({ regionName, name, candidate: c }) => {
             buildCandidateCard(candSec, {
@@ -165,10 +121,10 @@ function createMapPage(cfg) {
             });
         });
 
-        if (!regionResults.length && !candidateResults.length)
+        if (!candidateResults.length)
             rc.append("p").attr("class", "no-candidate-msg").text("검색 결과가 없습니다.");
 
-        equalizeCardHeights();
+        equalizeCardHeights(candSec.node());
     };
 
     // ── 인포패널 갱신 ─────────────────────────────────────────
@@ -177,15 +133,16 @@ function createMapPage(cfg) {
         iw.selectAll(".info-divider,.candidate-list,.search-results,.no-candidate-msg").remove();
 
         if (!regionName) {
-            d3.select("#info-title").text("내 지역을 클릭해보세요");
-            d3.select("#info-desc").text("YOON을 찾아봅시다!").style("color", "#666");
+            d3.select("#info-title").text("").style("display", "none");
+            d3.select("#info-desc").text("YOON을 찾아봅시다!").style("color", "#000").style("font-size", "20px");
+            iw.append("hr").attr("class", "info-divider"); // 구분선 항상 유지
             return;
         }
 
-        d3.select("#info-title").text(regionName);
+        d3.select("#info-title").text(regionName).style("display", "");
 
         if (isNoElection(regionName)) {
-            d3.select("#info-desc").text(noElectionMsg).style("color", "#666");
+            d3.select("#info-desc").text(noElectionMsg).style("color", "#666").style("font-size", "");
             iw.append("hr").attr("class", "info-divider");
             return;
         }
@@ -195,7 +152,8 @@ function createMapPage(cfg) {
 
         d3.select("#info-desc")
             .text(hasYoon ? "YOON이 발견되었습니다!" : "YOON이 발견되지 않았습니다!")
-            .style("color", hasYoon ? "#ae1932" : "#666");
+            .style("color", hasYoon ? "#ae1932" : "#666")
+            .style("font-size", "");
         iw.append("hr").attr("class", "info-divider");
 
         if (candidates.length) {
@@ -204,11 +162,10 @@ function createMapPage(cfg) {
                 const name = candidateName(c);
                 buildCandidateCard(list, { ...cardOpts(c, name), name, yoon: c.yoon, election });
             });
+            equalizeCardHeights(list.node());
         } else {
             iw.append("p").attr("class", "no-candidate-msg").text("등록된 후보가 없습니다.");
         }
-
-        equalizeCardHeights();
     }
 
     // ── 지도 렌더링 ──────────────────────────────────────────
@@ -240,8 +197,8 @@ function createMapPage(cfg) {
                 if (!hasData(name)) {
                     const iw = d3.select("#info-wrapper");
                     iw.selectAll(".info-divider,.candidate-list,.search-results,.no-candidate-msg").remove();
-                    d3.select("#info-title").text(name);
-                    d3.select("#info-desc").text(noElectionMsg).style("color", "#666");
+                    d3.select("#info-title").text(name).style("display", "");
+                    d3.select("#info-desc").text(noElectionMsg).style("color", "#666").style("font-size", "");
                     iw.append("hr").attr("class", "info-divider");
                     return;
                 }

@@ -183,8 +183,11 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
         (_, i) => adjBase * Math.pow(adjMax / adjBase, i / (numSteps - 1))
     );
 
+    // 지도 이동 범위 제한: 한반도가 항상 어느 정도 보이도록
+    const panLimit = mapW * 0.5;
     const zoom = d3.zoom()
         .scaleExtent([isMobile ? adjInitScale : adjBase, adjMax])
+        .translateExtent([[-panLimit, -panLimit], [mapW + panLimit, mapW + panLimit]])
         .filter(event => {
             if (event.type === "wheel" && event.ctrlKey) return false;
             return !event.button;

@@ -250,6 +250,11 @@
         }
 
         /* ── 모바일: 4칸 → 2칸 ── */
+        /* PC: th-mobile 숨김, th-pc-only 표시 */
+        .th-mobile  { display: none; }
+        .th-desktop { display: inline; }
+        .th-pc-only { display: table-cell; }  /* 헤더 셀 기본 표시 */
+
         @media (max-width: 768px) {
             .header-image {
                 width: 220px;
@@ -327,32 +332,18 @@
                 gap: 2px;
             }
 
-            /* 5번: 헤더 텍스트 변경 + grid 비율 조정 (선거/지역 40% 축소) */
+            /* 5번: 헤더 grid 비율 조정 */
             .yoon-table-header {
                 grid-template-columns: 0.75fr 1fr;
-            }
-            .yoon-table-header div:first-child::before {
-                content: 'YOON';
-            }
-            .yoon-table-header div:first-child {
-                font-size: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-            .yoon-table-header div:last-child::before {
-                content: 'WHY';
-            }
-            .yoon-table-header div:last-child {
-                font-size: 0;
-            }
-            .yoon-table-header div:first-child::before,
-            .yoon-table-header div:last-child::before {
-                font-size: 12px;
             }
             .yoon-row {
                 grid-template-columns: 0.75fr 1fr;
             }
+            /* 모바일에서는 th-desktop 숨기고 th-mobile 표시 */
+            .th-desktop { display: none; }
+            .th-mobile  { display: inline; }
+            /* PC only 헤더 셀은 모바일에서 숨김 (display:none 이미 위에서) */
+            .th-pc-only { display: none; }
         }
     </style>
 </head>
@@ -374,9 +365,12 @@
             <hr class="yoon-divider">
 
             <div class="yoon-table-header">
-                <div>선거 / 지역</div>
-                <div>사진</div>
-                <div>후보자</div>
+                <div>
+                    <span class="th-desktop">선거 / 지역</span>
+                    <span class="th-mobile">YOON</span>
+                </div>
+                <div class="th-pc-only">사진</div>
+                <div class="th-pc-only">후보자</div>
                 <div>WHY</div>
             </div>
 
@@ -516,7 +510,7 @@
                 const badge = document.createElement('a');
                 badge.className = 'yoon-badge-link';
                 badge.href = electionPageUrl;
-                badge.innerHTML = `<img src="favicon.png" alt=""> YOON`;
+                badge.innerHTML = `<img src="favicon.png" alt="" width="12" height="12"> YOON`;
                 cell3.appendChild(badge);
 
                 // 셀 4: 근거
@@ -558,7 +552,12 @@
             }
         }
 
-        renderRows();
+        // 폰트 로드 완료 후 렌더링 → 첫 로드 시 레이아웃 깨짐 방지
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(renderRows);
+        } else {
+            renderRows();
+        }
     </script>
     <p class="disclaimer">본 사이트는 공직선거 후보자의 공적 발언 및 행동에 관한 공개된 정보를 바탕으로 제작되었으며, 특정 후보를 비방하거나 명예를 훼손할 목적이 없습니다.</p>
 </body>
