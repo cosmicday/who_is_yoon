@@ -183,11 +183,17 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
         (_, i) => adjBase * Math.pow(adjMax / adjBase, i / (numSteps - 1))
     );
 
-    // 지도 이동 범위 제한: 한반도가 항상 어느 정도 보이도록
-    const panLimit = mapW * 0.5;
+    // 초기 뷰 기반 이동 범위 계산
+    // - 기본 배율: 팬 완전 차단 (초기 위치에서 한 점만 허용)
+    // - 확대 시: 초기 뷰에서 보이던 영역 밖으로 나가지 못함
+    const ex0 = -adjTX / adjInitScale;
+    const ey0 = -adjTY / adjInitScale;
+    const ex1 = (mapW - adjTX) / adjInitScale;
+    const ey1 = (mapW - adjTY) / adjInitScale;  // mapW = mapH (정사각형)
+
     const zoom = d3.zoom()
         .scaleExtent([isMobile ? adjInitScale : adjBase, adjMax])
-        .translateExtent([[-panLimit, -panLimit], [mapW + panLimit, mapW + panLimit]])
+        .translateExtent([[ex0, ey0], [ex1, ey1]])
         .filter(event => {
             if (event.type === "wheel" && event.ctrlKey) return false;
             return !event.button;
@@ -223,6 +229,41 @@ function initMapZoomAndSyringe({ svg, g, baseScale, maxScale, numSteps, translat
     // 초기 위치·배율 설정
     const initial = d3.zoomIdentity.translate(adjTX, adjTY).scale(adjInitScale);
     svg.call(zoom).on("dblclick.zoom", null).call(zoom.transform, initial);
+
+    // 모바일: 지도 팬 한계 도달 시 페이지 스크롤로 넘기기
+    // - d3.zoom 리스너가 먼저 등록된 후 추가해야 transform이 갱신된 뒤에 읽힘
+    if (isMobile) {
+        let lastTouchY = null;
+        let lastTouchX = null;
+        let prevTransY  = null;
+        const svgEl = svg.node();
+
+        svgEl.addEventListener('touchstart', e => {
+            lastTouchY  = e.touches[0].clientY;
+            lastTouchX  = e.touches[0].clientX;
+            prevTransY  = d3.zoomTransform(svgEl).y;
+        }, { passive: true });
+
+        svgEl.addEventListener('touchmove', e => {
+            if (lastTouchY === null) return;
+            const curY      = e.touches[0].clientY;
+            const curX      = e.touches[0].clientX;
+            const curTransY = d3.zoomTransform(svgEl).y;
+
+            const dTouchY    = lastTouchY - curY;           // 양수 = 손가락 위 = 페이지 아래
+            const dTouchX    = Math.abs(lastTouchX - curX);
+            const dTransformY = Math.abs(curTransY - prevTransY);
+
+            // 세로 스와이프가 우세하고 지도가 실제로 안 움직인 경우 → 페이지 스크롤
+            if (Math.abs(dTouchY) > dTouchX && Math.abs(dTouchY) > 2 && dTransformY < 1) {
+                window.scrollBy({ top: dTouchY, behavior: 'instant' });
+            }
+
+            lastTouchY = curY;
+            lastTouchX = curX;
+            prevTransY  = curTransY;
+        }, { passive: true });
+    }
 
     return zoom;
 }
